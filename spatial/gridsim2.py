@@ -2,8 +2,7 @@
 
 import os, numpy as np 
 from matplotlib import pyplot as plt 
-os.chdir('//dm11.hhmi.org/sgrolab/mark/comp_proj/gridcells')
-import gridfunc as gf
+import utils.gridfunc as gf
 import importlib
 importlib.reload(gf)
 import pickle 
