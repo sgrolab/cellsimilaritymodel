@@ -780,7 +780,25 @@ ax.tick_params(axis='both',which='minor',length=tickLength/2,width=tickWidth/2,l
 plt.subplots_adjust(top = .98, bottom = 0.11, right = .99, left = 0.08)
 plt.show()
 
-#%% Figure S1 (Distribution): Pull data
+#%% Figure S1 (Framework): Pull Data 
+
+os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/graphics')
+framework = img.imread('ngigraphic32.png')
+
+#%% Figure S1 (Framework): Plot
+
+f = plt.figure(figsize=(16,14))
+
+# metric figure 
+f.text(0.001,0.96,'A',fontsize=letterLabelSize,fontname='roboto')
+f.text(0.27,0.96,'B',fontsize=letterLabelSize,fontname='roboto')
+f.text(0.645,0.96,'C',fontsize=letterLabelSize,fontname='roboto')
+f.text(0.001,0.25,'D',fontsize=letterLabelSize,fontname='roboto')
+ax = f.add_subplot([0,0,.99,.99])
+ax.imshow(framework)
+ax.axis('off')
+
+#%% Figure S2 (Distribution): Pull data
 
 PprodAs = np.logspace(-3,2,6)
 Tcc = 1000
@@ -804,7 +822,7 @@ for file in os.listdir():
 
 
 
-#%% Figure S1 (Distributions): Plot 
+#%% Figure S2 (Distributions): Plot 
 
 def absM_dAsis_var(kcat,Pprod,Tcc):
     return 3*kcat*Pprod*Tcc**2
@@ -923,7 +941,7 @@ for i in range(len(PprodAs)):
 plt.subplots_adjust(top = .98, bottom = 0.07, right = .97, left = 0.03)
 plt.show()
 
-#%% Figure S2 (Relative Errors): Pull data
+#%% Figure S3 (Relative Errors): Pull data
 
 PprodAs = np.logspace(-3,2,6)
 Tcc = 1000
@@ -945,7 +963,7 @@ for file in os.listdir():
     drnds[index] = drnd
     dsiss[index] = dsis
 
-#%% Figure S2 (Relative Errors): Plot 
+#%% Figure S3 (Relative Errors): Plot 
 
 f= plt.figure(figsize=(8,6))
 
@@ -996,7 +1014,7 @@ ax2.spines['right'].set_color('grey')
 ax2.spines['top'].set_linewidth(0)
 ax2.spines['bottom'].set_linewidth(tickWidth)
 
-#%% Figure S3 (Conceptual Model): Pull Data 
+#%% OLD Figure S3 (Conceptual Model): Pull Data 
 
 os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/graphics')
 graphic = img.imread('ngigraphic65.png')
@@ -1026,7 +1044,7 @@ with open('varTcc_diffs.pickle','rb') as f:
 
 
 
-#%% Figure S3 (Conceptual Model): Plot
+#%% OLD Figure S3 (Conceptual Model): Plot
 
 f = plt.figure(figsize=(16,13))
 gs = GridSpec(4,4,figure=f,wspace=0.4,hspace=0.4)
