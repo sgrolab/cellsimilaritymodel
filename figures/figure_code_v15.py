@@ -802,6 +802,8 @@ for file in os.listdir():
     drnds[index] = drnd
     dsiss[index] = dsis
 
+
+
 #%% Figure S1 (Distributions): Plot 
 
 def absM_dAsis_var(kcat,Pprod,Tcc):
@@ -921,8 +923,80 @@ for i in range(len(PprodAs)):
 plt.subplots_adjust(top = .98, bottom = 0.07, right = .97, left = 0.03)
 plt.show()
 
+#%% Figure S2 (Relative Errors): Pull data
 
-#%% Figure S2 (Conceptual Model): Pull Data 
+PprodAs = np.logspace(-3,2,6)
+Tcc = 1000
+kcatA = 0.1
+motherAs = np.zeros([len(PprodAs),1000])
+motherBs = np.zeros_like(motherAs)
+drnds = np.zeros([len(PprodAs),1000,6])
+dsiss = np.zeros_like(drnds)
+
+os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/satprod/n1000')
+for file in os.listdir():
+    index = int(file.split('_')[2].split('.')[0])
+
+    with open(file,'rb') as f:
+        PprodA,Tcc,kcatA,motherA,motherB,drnd,dsis = pickle.load(f)
+    
+    motherAs[index] = motherA
+    motherBs[index] = motherB
+    drnds[index] = drnd
+    dsiss[index] = dsis
+
+#%% Figure S2 (Relative Errors): Plot 
+
+f= plt.figure(figsize=(8,6))
+
+# compute cv^2 for amount of A across PprodAs 
+var_mother_As = np.var(motherAs/2,axis=1)
+mean_mother_As = np.mean(motherAs/2, axis=1)
+cv_mother_As = var_mother_As/mean_mother_As**2 
+
+# compute relative partition error across PprodAs 
+partition_errors = np.abs(dsiss[:,:,0])
+mean_partition_errors = np.mean(partition_errors,axis=1)
+normalized_mean_partition_errors = mean_partition_errors/mean_mother_As
+
+ax1 = f.add_subplot(1,1,1)
+ax1.scatter(mean_mother_As, cv_mother_As, color=enzymeColor,s=100)
+ax1.plot(mean_mother_As, cv_mother_As, color=enzymeColor,linestyle='dotted',linewidth=plotWidth)
+ax1.hlines(0,0.9,2*10**5,color='k',linestyle='dashed',linewidth=plotWidth,zorder=0)
+plt.xscale('log')
+ax1.set_xlabel('[A]',fontsize=axisFontSize)
+ax1.set_ylabel('Molecular Noise\n($CV^2_{A_{mother}}$)',fontsize=axisFontSize)
+ax1.set_ylim([-0.02,0.35])
+ax1.spines['left'].set_linewidth(tickWidth)
+ax1.spines['left'].set_color(enzymeColor)
+ax1.spines['top'].set_linewidth(0)
+ax1.spines['right'].set_linewidth(0)
+ax1.spines['bottom'].set_linewidth(tickWidth)
+ax1.tick_params(axis='y',colors=enzymeColor)
+ax1.tick_params(axis='y',which='minor',colors=enzymeColor)
+ax1.tick_params(axis='both',width=tickWidth,length=tickLength,labelsize=tickFontSize)
+ax1.tick_params(axis='both',which='minor',length=tickLength/2,width=tickWidth/2,labelsize=tickFontSize)
+
+# dual y-axis 
+ax2 = ax1.twinx()
+ax2.scatter(mean_mother_As, normalized_mean_partition_errors, color='grey',s=100)
+ax2.plot(mean_mother_As, normalized_mean_partition_errors, color='grey', linestyle='dotted',linewidth=plotWidth)
+ax2.set_ylabel('Relative Partitioning Error\n($\overline{|\Delta A_{sister}|} / \mu_{A_{mother}}$)',fontsize=axisFontSize)
+ax2.set_ylim([-0.07,1.2])
+ax2.set_xticks(np.logspace(0,6,7))
+ax2.set_xticks(returnLogMinorTicks(0,6),[],minor=1)
+ax2.set_xlim([0.9,2*10**5])
+ax2.tick_params(axis='both',width=tickWidth,length=tickLength,labelsize=tickFontSize)
+ax2.tick_params(axis='both',which='minor',length=tickLength/2,width=tickWidth/2,labelsize=tickFontSize)
+ax2.tick_params(axis='y',colors='grey')
+ax2.tick_params(axis='y',which='minor',colors='grey')
+ax2.spines['left'].set_linewidth(0)
+ax2.spines['right'].set_linewidth(tickWidth)
+ax2.spines['right'].set_color('grey')
+ax2.spines['top'].set_linewidth(0)
+ax2.spines['bottom'].set_linewidth(tickWidth)
+
+#%% Figure S3 (Conceptual Model): Pull Data 
 
 os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/graphics')
 graphic = img.imread('ngigraphic65.png')
@@ -952,7 +1026,7 @@ with open('varTcc_diffs.pickle','rb') as f:
 
 
 
-#%% Figure S2 (Conceptual Model): Plot
+#%% Figure S3 (Conceptual Model): Plot
 
 f = plt.figure(figsize=(16,13))
 gs = GridSpec(4,4,figure=f,wspace=0.4,hspace=0.4)
@@ -1051,7 +1125,7 @@ plt.subplots_adjust(top = .85, bottom = 0.065, right = .97, left = 0.09)
 plt.show()
 
 
-#%% Figure S3 (Saturated Production, kcat and Tcc sweep, full): pull data
+#%% Figure S4 (Saturated Production, kcat and Tcc sweep, full): pull data
 
 def normdvar(kT):
     return 20/9*kT/(3+20/9*kT)
@@ -1094,7 +1168,7 @@ for file in os.listdir():
     Tccs2_Tcc[Tccindex] = Tcc_val
     Tccs2_normvarBs[Tccindex] = normvarB
 
-#%% Figure S3 (Saturated Production, kcat and Tcc sweep, full): plot 
+#%% Figure S4 (Saturated Production, kcat and Tcc sweep, full): plot 
 
 f = plt.figure(figsize=(8,3))
 gs = GridSpec(1,2,figure=f,wspace=0.5,hspace=0.4)
@@ -1137,7 +1211,7 @@ ax.tick_params(axis='y',which='minor',colors=signalColor)
 plt.subplots_adjust(top = 0.95, bottom = 0.25, right = 0.98, left = -0.1)
 plt.show()
 
-#%% Figure S4 (Saturated Production Amplification Factor 2D): pull data 
+#%% Figure S5 (Saturated Production Amplification Factor 2D): pull data 
 
 def normdvar(kT):
     return 20/9*kT/(3+20/9*kT)
@@ -1175,7 +1249,7 @@ for file in os.listdir():
     normvarBs[prodAindex,kcatAindex] = 1-np.var(dsis[:,:,1],axis=1)/np.var(drnd[:,:,1],axis=1)
 
 
-#%% Figure S4 (Saturated Production Amplification Factor 2D): plot 
+#%% Figure S5 (Saturated Production Amplification Factor 2D): plot 
 
 f = plt.figure(figsize=(8,4))
 gs = GridSpec(1,2,figure=f,wspace=0.1,hspace=0.3)
@@ -1219,7 +1293,7 @@ coef_cbar.outline.set_linewidth(2)
 plt.subplots_adjust(top = 0.9, bottom = 0.2, right = 0.85, left = 0.05)
 plt.show()
 
-#%% Figure S5 (Production Motif Fixed Reactant - kcatA and PprodA sweep): Pull Data
+#%% Figure S6 (Production Motif Fixed Reactant - kcatA and PprodA sweep): Pull Data
 
 os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/graphics')
 prod_fixedB = img.imread('ngigraphic70.png')
@@ -1246,7 +1320,7 @@ kcatColors = np.transpose(np.array((np.linspace(255/255,231/255,5),
                                     np.linspace(98/255,78/255,5))))
 
 
-#%% Figure S5 (Production Motif Fixed Reactant - kcatA and PprodA sweep): Plot
+#%% Figure S6 (Production Motif Fixed Reactant - kcatA and PprodA sweep): Plot
 
 def calcProdRate(A,B,Km,kcat):
     return kcat/2*(A+B+Km-np.sqrt((A+B+Km)**2-4*A*B))
@@ -1323,7 +1397,7 @@ plt.subplots_adjust(top = 0.98, bottom = 0.23, right = 0.99, left = 0)
 plt.show()
 
 
-#%% Figure S6 (Irreversible and Reversible Binding): Pull Data
+#%% Figure S7 (Irreversible and Reversible Binding): Pull Data
 
 os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/graphics')
 irreversible = img.imread('ngigraphic53.png')
@@ -1343,7 +1417,7 @@ prodColors = np.transpose(np.array((np.linspace(prodColorRange[0][0],prodColorRa
                                     np.linspace(prodColorRange[0][1],prodColorRange[1][1],31),
                                     np.linspace(prodColorRange[0][2],prodColorRange[1][2],31))))
 
-#%% Figure S6 (Irreversible and Reversible Binding): Plot
+#%% Figure S7 (Irreversible and Reversible Binding): Plot
 
 f = plt.figure(figsize=(16,7))
 gs = GridSpec(2,4,figure=f,wspace=0.6,hspace=0.5)
@@ -1525,7 +1599,7 @@ ax.axis('off')
 plt.subplots_adjust(top = 0.97, bottom = 0.12, right = 0.98, left = 0.05)
 plt.show()
 
-#%% Figure S7 (Monofunctional Phosphorylation Motif): pull data 
+#%% Figure S8 (Monofunctional Phosphorylation Motif): pull data 
 
 os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/graphics')
 phosphorylation = img.imread('ngigraphic58.png')
@@ -1535,7 +1609,7 @@ with open('phos_int3.pickle','rb') as f:
     prodAs,prodBs,Aeqs,Beqs,Ceqs,Deqs,Eeqs,varAs,varBs,varCs,varDs,varEs = pickle.load(f)
 
 
-#%% Figure S7 (Monofunctional Phosphorylation Motif): plot 
+#%% Figure S8 (Monofunctional Phosphorylation Motif): plot 
 
 xmax = 30
 ymax = 30
@@ -1712,7 +1786,7 @@ coef_cbar.outline.set_linewidth(2)
 plt.subplots_adjust(top = .96, bottom = 0.11, right = .93, left = 0.07)
 plt.show()
 
-#%% Figure S8 (Bifunctional TCS): Pull Data 
+#%% Figure S9 (Bifunctional TCS): Pull Data 
 
 os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/graphics')
 pathway = img.imread('ngigraphic60.png')
@@ -1721,7 +1795,7 @@ os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/prodRateSat')
 with open('phos2_0.pickle','rb') as f:
     prodAs,prodBs,Aeqs,Beqs,Ceqs,Eeqs,Deqs,Feqs,varAs,varBs,varCs,varDs,varEs,varFs = pickle.load(f)
 
-#%% Figure S8 (Bifunctional TCS): Plot
+#%% Figure S9 (Bifunctional TCS): Plot
 
 f = plt.figure(figsize=(16,4))
 gs = GridSpec(1,3,figure=f,wspace=0.8,hspace=0.1)
@@ -1774,7 +1848,7 @@ coef_cbar.outline.set_linewidth(2)
 plt.subplots_adjust(top = .99, bottom = 0.2, right = .93, left = 0.08)
 plt.show()
 
-#%% Figure S9 (Duration sweep): Pull Data
+#%% Figure S10 (Duration sweep): Pull Data
 
 os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/graphics')
 circuit = img.imread('ngigraphic50.png')
@@ -1808,7 +1882,7 @@ with open('satprod_time_Tccsweep_2.pickle','rb') as f:
 with open('satprod_time_Tccsweep_3.pickle','rb') as f:
     normvar_Tccweep_3 = pickle.load(f)
 
-#%% Figure S9 (Duration sweep): Plot 
+#%% Figure S10 (Duration sweep): Plot 
 
 f = plt.figure(figsize=(16,9))
 gs = GridSpec(3,4,figure=f,wspace=0.4,hspace=0.2)
@@ -2011,7 +2085,7 @@ ax.tick_params(axis='y',which='minor',colors=signalColor)
 plt.subplots_adjust(top = .99, bottom = 0.08, right = .99, left = 0.09)
 plt.show()
 
-#%% Figure S10 (Full Rkcat sweep): Analyze 
+#%% Figure S11 (Full Rkcat sweep): Analyze 
 
 os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/graphics')
 proddeg = img.imread('ngigraphic51.png')
@@ -2034,7 +2108,7 @@ colors[:,1] = np.linspace(233/255,137/255,len(Rkcats))
 colors[:,2] = np.linspace(255/255,153/255,len(Rkcats))
 RkcatColors = ListedColormap(colors)
 
-#%% Figure S10 (Full Rkcat sweep): plot
+#%% Figure S11 (Full Rkcat sweep): plot
 
 times = np.linspace(0,10,1001)
 
@@ -2136,7 +2210,7 @@ coef_cbar.outline.set_linewidth(2)
 plt.subplots_adjust(top = .93, bottom = 0.2, right = .99, left = 0.05)
 plt.show()
 
-#%% Figure S11 (5 Step Cascade): pull
+#%% Figure S12 (5 Step Cascade): pull
 
 os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/graphics')
 cascade = img.imread('ngigraphic75.png')
@@ -2146,7 +2220,7 @@ with open('cascade5_time.pickle','rb') as f:
     means,variances,normvar = pickle.load(f)
 times = np.linspace(0,20,2001)
 
-#%% Figure S11 (5 Step Cascade): plot 
+#%% Figure S12 (5 Step Cascade): plot 
 
 f = plt.figure(figsize=(8,4))
 gs = plt.GridSpec(1,3,wspace=0.3,hspace=0.1)
@@ -2184,19 +2258,19 @@ ax.tick_params(axis='both',which='minor',length=tickLength/2,width=tickWidth/2,l
 plt.subplots_adjust(top = .95, bottom = 0.2, right = .98, left = 0.2)
 plt.show()
 
-#%% Figure S12 (Spatial Simulation graphic): Pull 
+#%% Figure S13 (Spatial Simulation graphic): Pull 
 
 os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/graphics')
 spacealgo = img.imread('ngigraphic26.png')
 
-#%% Figure S12 (Spatial Simulation graphic): plot 
+#%% Figure S13 (Spatial Simulation graphic): plot 
 
 f = plt.figure(figsize=(16,4))
 ax = f.add_subplot([0,0,1,1])
 ax.imshow(spacealgo)
 ax.axis('off')
 
-#%% Figure S13 (cousin maps different reference cells): pull
+#%% Figure S14 (cousin maps different reference cells): pull
 
 os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/gridcells/mac_cascade')
 with open('cascade_10gen2_cousinmaps_all.pickle','rb') as f:
@@ -2204,7 +2278,7 @@ with open('cascade_10gen2_cousinmaps_all.pickle','rb') as f:
 cousinNums = [100,200,300,400,500]
 ts = [0,2000,4000,6000,8000,10000]
 
-#%% Figure S13 (cousin maps different reference cells): plot
+#%% Figure S14 (cousin maps different reference cells): plot
 
 f = plt.figure(figsize=(16,14))
 
@@ -2228,7 +2302,7 @@ coef_cbar.ax.tick_params(length=tickLength/2,width=tickWidth/2,labelsize=18,colo
 coef_cbar.outline.set_linewidth(2)
 coef_cbar.outline.set_color('white')
 
-#%% Figure S14 (relatedness curves different grids): pull
+#%% Figure S15 (relatedness curves different grids): pull
 
 os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/gridcells/randomseeds')
 with open('grid_1000_relatedness.pickle','rb') as f:
@@ -2238,7 +2312,7 @@ with open('grid_1001_relatedness.pickle','rb') as f:
 with open('grid_1002_relatedness.pickle','rb') as f:
     relatedness_1002 = pickle.load(f)
 
-#%% Figure S14 (relatedness curves different grids): plot
+#%% Figure S15 (relatedness curves different grids): plot
 
 f,ax = plt.subplots(figsize=(8,5))
 
@@ -2262,7 +2336,7 @@ ax.tick_params(axis='both',which='minor',length=tickLength/2,width=tickWidth/2,l
 plt.subplots_adjust(top = .98, bottom = 0.19, right = .99, left = 0.1)
 plt.show()
 
-#%% Figure S15 (Moran's I weight matrices): pull
+#%% Figure S16 (Moran's I weight matrices): pull
 
 os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/graphics')
 weightdefs = img.imread('ngigraphic27.png')
@@ -2298,7 +2372,7 @@ for i in range(1,len(filenames)):
     with open(filenames[i],'rb') as f:
         morIs_gausdisc[i-1] = pickle.load(f)
 
-#%% Figure S15 (Moran's I weight matrices): plot
+#%% Figure S16 (Moran's I weight matrices): plot
 
 def expDecay(x,tau,x0):
     return x0*np.exp(-x/tau)
@@ -2449,31 +2523,31 @@ ax.tick_params(axis='both',which='minor',length=tickLength/2,width=tickWidth/2,l
 plt.subplots_adjust(top = .95, bottom = 0.14, right = .99, left = -.15)
 plt.show()
 
-#%% Figure S16 (Seed Cell Schematic): Pull Data 
+#%% Figure S17 (Seed Cell Schematic): Pull Data 
 
 os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/graphics')
 seedcells = img.imread('ngigraphic46.png')
 
-#%% Figure S16 (Seed Cell Schematic): Plot 
+#%% Figure S17 (Seed Cell Schematic): Plot 
 
 f = plt.figure(figsize=(16,5.5))
 ax = f.add_subplot([0,0,1,1])
 ax.imshow(seedcells)
 ax.axis('off')
 
-#%% Figure S17 (Toy Model Brekaout): pull data
+#%% Figure S18 (Toy Model Brekaout): pull data
 
 os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/graphics')
 pathway = img.imread('ngigraphic89.png')
 
-#%% Figure S17 (Toy Model Brekaout): Plot
+#%% Figure S18 (Toy Model Brekaout): Plot
 
 f = plt.figure(figsize=(8,4.5))
 ax = f.add_subplot([0,0,1,1])
 ax.imshow(pathway)
 ax.axis('off')
 
-#%% Figure S17 (Phosphorylation Monocycles): pull data 
+#%% Figure S19 (Phosphorylation Monocycles): pull data 
 
 os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/graphics')
 pathway = img.imread('ngigraphic69.png')
@@ -2494,7 +2568,7 @@ os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/satphos')
 with open('satphos3.pickle','rb') as f:
     prodBs_MM,kms_MM,Aeqs_MM,Beqs_MM,Ceqs_MM,Deqs_MM,varAs_MM,varBs_MM,varCs_MM,varDs_MM = pickle.load(f)
 
-#%% Figure S17 (Phosphorylation Monocycles): plot 
+#%% Figure S19 (Phosphorylation Monocycles): plot 
 
 def logFit(x,xmax,Kx,n):
     return xmax*x**n/(Kx**n+x**n)
@@ -2569,7 +2643,7 @@ coef_cbar.outline.set_linewidth(2)
 plt.subplots_adjust(top = 0.93, bottom = 0.18, right = 0.99, left = -0.01)
 plt.show()
 
-#%% Figure S18 (Correlation Coefficient): Pull Data
+#%% Figure S20 (Correlation Coefficient): Pull Data
 
 os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/graphics')
 prodonly = img.imread('ngigraphic50.png')
@@ -2580,7 +2654,7 @@ with open('samplerun.pickle','rb') as f:
 
 times = np.linspace(0,10,10000)
 
-#%% Figure S18 (Correlation Coefficient): Plot
+#%% Figure S20 (Correlation Coefficient): Plot
 
 f = plt.figure(figsize=(16,6))
 gs = GridSpec(2,4,figure=f,wspace=0.6,hspace=0.3)
@@ -2716,7 +2790,7 @@ ax.tick_params(axis='both',which='minor',length=tickLength/2,width=tickWidth/2,l
 plt.subplots_adjust(top = .98, bottom = 0.15, right = .99, left = -0.05)
 plt.show()
 
-#%% Figure S19 (Reactant Similarity): pull data 
+#%% Figure S21 (Reactant Similarity): pull data 
 
 def calcProdRate(A,B,kcatA,Km):
     return kcatA/2*(A+B+Km-np.sqrt((A+B+Km)**2-4*A*B))
@@ -2735,7 +2809,7 @@ kcatA = 10**-1
 PprodBs = np.logspace(-2,4,31)
 Km = 10**3
 
-#%% Figure S19 (Reactant Similarity): Plot 
+#%% Figure S21 (Reactant Similarity): Plot 
 
 f = plt.figure(figsize=(16,3.5))
 gs = GridSpec(1,4,figure=f,wspace=0.6,hspace=0.4)
