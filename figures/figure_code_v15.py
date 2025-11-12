@@ -136,8 +136,8 @@ def var_dB_sis(kcat,Pprod,Tcc):
 def var_dB_rnd(kcat,Pprod,Tcc):
     return 3*kcat*Pprod*Tcc**2 + 20/9*kcat**2*Pprod*Tcc**3
 
-f = plt.figure(figsize=(16,9))
-gs = GridSpec(3,4,figure=f,wspace=0.7,hspace=1)
+f = plt.figure(figsize=(16,10))
+gs = GridSpec(3,4,figure=f,wspace=0.5,hspace=0.5)
 
 f.text(0.001,0.95,'A',fontsize=letterLabelSize,fontname='roboto')
 ax = f.add_subplot([0.01,0.6,.23,.5])
@@ -174,12 +174,12 @@ ax.tick_params(axis='both',width=tickWidth,length=tickLength,labelsize=tickFontS
 ax.tick_params(axis='both',which='minor',length=tickLength/2,width=tickWidth/2,labelsize=tickFontSize)
 ax.tick_params(axis='y',colors=enzymeColor)
 ax.tick_params(axis='y',which='minor',colors=enzymeColor)
-ax = f.add_subplot([0.37,0.63,.12,0.12])
+ax = f.add_subplot([0.39,0.74,.08,0.12])
 ax.imshow(LASneg)
 ax.axis('off')
 
-f.text(0.47,0.92,'C',fontsize=letterLabelSize,fontname='roboto')
-ax = f.add_subplot([0.54,0.63,.15,.32])
+f.text(0.47,0.95,'C',fontsize=letterLabelSize,fontname='roboto')
+ax = f.add_subplot([0.54,0.75,.15,.2])
 ax.scatter(0,1,2,color='white',label='Numerical')
 ax.scatter(As,np.var(drnds[:,:,1],axis=1),color=randomColor,label='$\Delta\sigma^2_{[B],rnd}$',s=dotsize,alpha=0.5)
 ax.scatter(As,np.var(dsiss[:,:,1],axis=1),color=signalColor,label='$\Delta\sigma^2_{[B],sis}$',s=dotsize,alpha=0.5)
@@ -207,21 +207,21 @@ ax.spines['top'].set_linewidth(0)
 ax.tick_params(axis='both',width=tickWidth,length=tickLength,labelsize=tickFontSize)
 ax.tick_params(axis='y',colors=signalColor)
 ax.tick_params(axis='y',which='minor',colors=signalColor)
-ax = f.add_subplot([0.6,0.64,.1,0.1])
+ax = f.add_subplot([0.61,0.74,.08,0.1])
 ax.imshow(LASpos)
 ax.axis('off')
 
-f.text(0.7,0.92,'D',fontsize=letterLabelSize,fontname='roboto')
-ax = f.add_subplot([0.7,0.5,.3,.5])
+f.text(0.7,0.95,'D',fontsize=letterLabelSize,fontname='roboto')
+ax = f.add_subplot([0.7,0.6,.3,.5])
 ax.imshow(differences_graphic)
 ax.axis('off')
 
-f.text(0.7,0.92,'E',fontsize=letterLabelSize,fontname='roboto')
-ax = f.add_subplot([0,0.2,1,.5])
+f.text(0.001,0.62,'E',fontsize=letterLabelSize,fontname='roboto')
+ax = f.add_subplot([0.04,0.22,.96,.5])
 ax.imshow(graphic)
 ax.axis('off')
 
-f.text(0.001,0.19,'E',fontsize=letterLabelSize,fontname='roboto')
+f.text(0.001,0.23,'F',fontsize=letterLabelSize,fontname='roboto')
 ax = f.add_subplot(gs[2,0])
 ax.hlines(0,0,1,color='k',linestyle='dashed',linewidth=plotWidth)
 ax.scatter(biases,normvarAs,color=randomColor)
@@ -241,7 +241,7 @@ ax.spines['top'].set_linewidth(0)
 ax.tick_params(axis='both',length=tickLength,width=tickWidth,labelsize=tickFontSize)
 ax.tick_params(axis='both',which='minor',length=tickLength/2,width=tickWidth/2,labelsize=tickFontSize)
 
-f.text(0.27,0.19,'F',fontsize=letterLabelSize,fontname='roboto')
+f.text(0.27,0.23,'G',fontsize=letterLabelSize,fontname='roboto')
 ax = f.add_subplot(gs[2,1])
 ax.hlines(0,0,10**6,color='k',linestyle='dashed',linewidth=plotWidth)
 ax.scatter(As,1-np.var(dsisA[:,:,0],axis=1)/np.var(drndA[:,:,0],axis=1),color=randomColor)
@@ -263,7 +263,7 @@ ax.tick_params(axis='both',which='minor',length=tickLength/2,width=tickWidth/2,l
 
 colors=[[.2,.2,.2],[.4,.4,.4],[.6,.6,.6]]
 
-f.text(0.5,0.19,'G',fontsize=letterLabelSize,fontname='roboto')
+f.text(0.5,0.23,'H',fontsize=letterLabelSize,fontname='roboto')
 ax = f.add_subplot(gs[2,2])
 ax.hlines(0,-1,21,color='k',linestyle='dashed',linewidth=2)
 ax.scatter(burstSizes_0,normvarAs_0,color=colors[0],label='$P_{prod,A}=10^{-2}$')
@@ -284,7 +284,7 @@ ax.spines['top'].set_linewidth(0)
 ax.tick_params(axis='both',width=tickWidth,length=tickLength,labelsize=tickFontSize)
 ax.tick_params(axis='both',which='minor',length=tickLength/2,width=tickWidth/2,labelsize=tickFontSize)
 
-f.text(0.74,0.19,'H',fontsize=letterLabelSize,fontname='roboto')
+f.text(0.74,0.23,'I',fontsize=letterLabelSize,fontname='roboto')
 ax = f.add_subplot(gs[2,3])
 ax.hlines(0,0,10**4,color='k',linewidth=plotWidth,linestyle='dashed')
 ax.scatter(varTccs,1-np.var(dsis[:,:,0],axis=1)/np.var(drnd[:,:,0],axis=1),color=randomColor)
@@ -1132,31 +1132,6 @@ ax2.spines['right'].set_linewidth(tickWidth)
 ax2.spines['right'].set_color('grey')
 ax2.spines['top'].set_linewidth(0)
 ax2.spines['bottom'].set_linewidth(tickWidth)
-
-#%% OLD Figure S3 (Conceptual Model): Pull Data 
-
-
-
-
-
-#%% OLD Figure S3 (Conceptual Model): Plot
-
-f = plt.figure(figsize=(16,13))
-gs = GridSpec(4,4,figure=f,wspace=0.4,hspace=0.4)
-
-f.text(0.001,0.965,'A',fontsize=letterLabelSize,fontname='roboto')
-f.text(0.26,0.965,'B',fontsize=letterLabelSize,fontname='roboto')
-f.text(0.73,0.965,'C',fontsize=letterLabelSize,fontname='roboto')
-f.text(0.001,0.49,'D',fontsize=letterLabelSize,fontname='roboto')
-
-ax = f.add_subplot([0,0.21,1,0.8])
-ax.imshow(graphic)
-ax.axis('off')
-
-
-plt.subplots_adjust(top = .85, bottom = 0.065, right = .97, left = 0.09)
-plt.show()
-
 
 #%% Figure S4 (Saturated Production, kcat and Tcc sweep, full): pull data
 
