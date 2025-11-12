@@ -8,10 +8,6 @@ from matplotlib import patches as mpatches
 from matplotlib.colors import ListedColormap
 from scipy.optimize import curve_fit
 from scipy import stats
-sys.path.insert(0,'//prfs.hhmi.org/sgrolab/mark/comp_proj/motifs')
-# import motiffunc as mf
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/gridcells')
-# import gridfunc as gf
 
 letterLabelSize=42
 axisFontSize=20
@@ -95,6 +91,221 @@ for file in os.listdir():
     drnds[index] = drnd
     dsiss[index] = dsis
 
+os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/graphics')
+graphic = img.imread('ngigraphic40.png')
+
+os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/asymmetric')
+with open('asymmetric_bias_screen.pickle','rb') as f:
+    biases,Aeqs,normvarAs = pickle.load(f)
+
+os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/satprod')
+with open('satprod_prodAsweep.pickle','rb') as f:
+    PprodAs,Tcc,kcatA,Aeqs,drndA,dsisA = pickle.load(f)
+prodAs = np.logspace(-3,2,6)
+As = prodAs * 1000 * 2
+
+os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/burstSize')
+with open('burstSize_prodA-2.pickle','rb') as f:
+    burstSizes_0,prodAs_0,Aeqs_0,Beqs_0,normvarAs_0,normvarBs_0 = pickle.load(f)
+with open('burstSize_prodA-1.pickle','rb') as f:
+    burstSizes_1,prodAs_1,Aeqs_1,Beqs_1,normvarAs_1,normvarBs_1 = pickle.load(f)
+with open('burstSize_prodA-0.pickle','rb') as f:
+    burstSizes_2,prodAs_2,Aeqs_2,Beqs_2,normvarAs_2,normvarBs_2 = pickle.load(f)
+colors = [enzymeColor,color_L,[68/255,10/255,21/255]]
+
+os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/varTcc')
+with open('varTcc_diffs.pickle','rb') as f:
+   varTccs,dsis,drnd = pickle.load(f)
+
+
+#%% Figure 2 (Toy Model): Plot 
+
+As = PprodAs * Tcc_prodAsweep
+Bs = 3/2 * PprodAs * kcatA_prodAsweep * Tcc_prodAsweep**2
+dotsize= 100
+
+def var_dA_sis(pprod,Tcc):
+    return 2*pprod*Tcc
+
+def var_dA_rnd(pprod,Tcc):
+    return 2*pprod*Tcc
+
+def var_dB_sis(kcat,Pprod,Tcc):
+    return 3*kcat*Pprod*Tcc**2
+
+def var_dB_rnd(kcat,Pprod,Tcc):
+    return 3*kcat*Pprod*Tcc**2 + 20/9*kcat**2*Pprod*Tcc**3
+
+f = plt.figure(figsize=(16,10))
+gs = GridSpec(3,4,figure=f,wspace=0.5,hspace=0.5)
+
+f.text(0.001,0.95,'A',fontsize=letterLabelSize,fontname='roboto')
+ax = f.add_subplot([0.01,0.6,.23,.5])
+ax.imshow(prodonly)
+ax.axis('off')
+
+f.text(0.245,0.95,'B',fontsize=letterLabelSize,fontname='roboto')
+ax = f.add_subplot([0.31,0.75,.15,.2])
+ax.scatter(0,1,2,color='white',label='Numerical')
+ax.scatter(As,np.var(drnds[:,:,0],axis=1),color=randomColor,label='$\Delta\sigma^2_{[A],rnd}$',s=dotsize,alpha=0.5)
+ax.scatter(As,np.var(dsiss[:,:,0],axis=1),color=enzymeColor,label='$\Delta\sigma^2_{[A],sis}$',s=dotsize,alpha=0.5)
+ax.hlines(0,1,2,color='white',label='Analytical')
+ax.plot(As,var_dA_rnd(PprodAs,Tcc_prodAsweep),color=randomColor,linestyle='dashed',label='$\Delta\sigma^2_{[A],rnd}$')
+ax.plot(As,var_dA_sis(PprodAs,Tcc_prodAsweep),color=enzymeColor,linestyle='dotted',label='$\Delta\sigma^2_{[A],sis}$')
+ax.legend(frameon=0,fontsize=10,ncol=2,loc='upper left',bbox_to_anchor=[-.06,.7,.5,.5])
+ax.set_xlabel('Enzyme Amt. ($[A]_{eq}$)',fontsize=axisFontSize,labelpad=0)
+ylabel = ax.set_ylabel('Var. Diff. ($\sigma^2_{\Delta [A]}$)',fontsize=axisFontSize,labelpad=0)
+ylabel.set_position((0,0.35))
+ax.set_xscale('log')
+ax.set_yscale('log')
+ax.set_xlim([6*10**(-1),2*10**5])
+ax.set_xticks(np.logspace(0,5,6))
+ax.set_xticks(returnLogMinorTicks(0,5),[],minor=1)
+ax.set_ylim([1,10**8])
+ax.set_yticks(np.logspace(0,8,5))
+ax.set_ylim([0.5,10**8])
+ax.set_yticks(returnLogMinorTicks(0,8),[],minor=1)
+ax.spines['left'].set_linewidth(tickWidth)
+ax.spines['left'].set_color(enzymeColor)
+ax.spines['bottom'].set_linewidth(tickWidth)
+ax.spines['right'].set_linewidth(0)
+ax.spines['top'].set_linewidth(0)
+ax.tick_params(axis='both',width=tickWidth,length=tickLength,labelsize=tickFontSize)
+ax.tick_params(axis='both',which='minor',length=tickLength/2,width=tickWidth/2,labelsize=tickFontSize)
+ax.tick_params(axis='y',colors=enzymeColor)
+ax.tick_params(axis='y',which='minor',colors=enzymeColor)
+ax = f.add_subplot([0.39,0.74,.08,0.12])
+ax.imshow(LASneg)
+ax.axis('off')
+
+f.text(0.47,0.95,'C',fontsize=letterLabelSize,fontname='roboto')
+ax = f.add_subplot([0.54,0.75,.15,.2])
+ax.scatter(0,1,2,color='white',label='Numerical')
+ax.scatter(As,np.var(drnds[:,:,1],axis=1),color=randomColor,label='$\Delta\sigma^2_{[B],rnd}$',s=dotsize,alpha=0.5)
+ax.scatter(As,np.var(dsiss[:,:,1],axis=1),color=signalColor,label='$\Delta\sigma^2_{[B],sis}$',s=dotsize,alpha=0.5)
+ax.hlines(0,1,2,color='white',label='Analytical')
+ax.plot(As,var_dB_rnd(kcatA_prodAsweep,PprodAs,Tcc_prodAsweep),color=randomColor,linestyle='dashed',label='$\Delta\sigma^2_{[B],rnd}$')
+ax.plot(As,var_dB_sis(kcatA_prodAsweep,PprodAs,Tcc_prodAsweep),color=signalColor,linestyle='dotted',label='$\Delta\sigma^2_{[B],sis}$')
+ax.legend(frameon=0,fontsize=10,ncol=2,loc='upper left',bbox_to_anchor=[-.05,.7,.5,.5])
+ax.set_xlabel('Enzyme Amt. ($[A]_{eq}$)',fontsize=axisFontSize,labelpad=0)
+ylabel = ax.set_ylabel('Var. Diff. ($\sigma^2_{\Delta [B]}$)',fontsize=axisFontSize,labelpad=0)
+ylabel.set_position((0,0.35))
+ax.set_xscale('log')
+ax.set_yscale('log')
+ax.set_xlim([6*10**(-1),2*10**5])
+ax.set_xticks(np.logspace(0,5,6))
+ax.set_xticks(returnLogMinorTicks(0,5),[],minor=1)
+ax.set_yticks(np.logspace(2,12,6))
+ax.set_yticks(returnLogMinorTicks(2,12),[],minor=1)
+ax.set_ylim([10**2,10**12])
+ax.tick_params(axis='both',which='minor',length=tickLength/2,width=tickWidth/2,labelsize=tickFontSize)
+ax.spines['left'].set_linewidth(tickWidth)
+ax.spines['left'].set_color(signalColor)
+ax.spines['bottom'].set_linewidth(tickWidth)
+ax.spines['right'].set_linewidth(0)
+ax.spines['top'].set_linewidth(0)
+ax.tick_params(axis='both',width=tickWidth,length=tickLength,labelsize=tickFontSize)
+ax.tick_params(axis='y',colors=signalColor)
+ax.tick_params(axis='y',which='minor',colors=signalColor)
+ax = f.add_subplot([0.61,0.74,.08,0.1])
+ax.imshow(LASpos)
+ax.axis('off')
+
+f.text(0.7,0.95,'D',fontsize=letterLabelSize,fontname='roboto')
+ax = f.add_subplot([0.7,0.6,.3,.5])
+ax.imshow(differences_graphic)
+ax.axis('off')
+
+f.text(0.001,0.62,'E',fontsize=letterLabelSize,fontname='roboto')
+ax = f.add_subplot([0.04,0.22,.96,.5])
+ax.imshow(graphic)
+ax.axis('off')
+
+f.text(0.001,0.23,'F',fontsize=letterLabelSize,fontname='roboto')
+ax = f.add_subplot(gs[2,0])
+ax.hlines(0,0,1,color='k',linestyle='dashed',linewidth=plotWidth)
+ax.scatter(biases,normvarAs,color=randomColor)
+ax.set_xlim([0.5,1.01])
+ax.set_xticks(np.linspace(0.5,1,6))
+ax.set_xticks(np.linspace(0.5,1,11),[],minor=1)
+ax.set_ylim([-1,1])
+ax.set_yticks(np.linspace(-1,1,5))
+ax.set_yticks(np.linspace(-1,1,21),[],minor=1)
+ax.set_xlabel('Partition Bias',fontsize=axisFontSize)
+ylabel = ax.set_ylabel('LAS ($\Delta \hat{\sigma}^2_{\Delta [A]})$',fontsize=axisFontSize,labelpad=-6)
+ylabel.set_position((0,0.5))
+ax.spines['left'].set_linewidth(tickWidth)
+ax.spines['bottom'].set_linewidth(tickWidth)
+ax.spines['right'].set_linewidth(0)
+ax.spines['top'].set_linewidth(0)
+ax.tick_params(axis='both',length=tickLength,width=tickWidth,labelsize=tickFontSize)
+ax.tick_params(axis='both',which='minor',length=tickLength/2,width=tickWidth/2,labelsize=tickFontSize)
+
+f.text(0.27,0.23,'G',fontsize=letterLabelSize,fontname='roboto')
+ax = f.add_subplot(gs[2,1])
+ax.hlines(0,0,10**6,color='k',linestyle='dashed',linewidth=plotWidth)
+ax.scatter(As,1-np.var(dsisA[:,:,0],axis=1)/np.var(drndA[:,:,0],axis=1),color=randomColor)
+ax.set_xlabel('Concentration ($[A]_{eq}$)',fontsize=axisFontSize,labelpad=0)
+# ax.set_ylabel('Norm. Similarity ($\sigma^2_{\Delta [A]}$)',fontsize=axisFontSize,labelpad=0)
+ax.set_xscale('log')
+ax.set_xlim([10**0,10**6])
+ax.set_xticks(np.logspace(0,6,4))
+ax.set_xticks(returnLogMinorTicks(0,6),[],minor=1)
+ax.set_ylim([-1,1])
+ax.set_yticks(np.linspace(-1,1,5))
+ax.set_yticks(np.linspace(-1,1,21),[],minor=1)
+ax.spines['left'].set_linewidth(tickWidth)
+ax.spines['bottom'].set_linewidth(tickWidth)
+ax.spines['right'].set_linewidth(0)
+ax.spines['top'].set_linewidth(0)
+ax.tick_params(axis='both',width=tickWidth,length=tickLength,labelsize=tickFontSize)
+ax.tick_params(axis='both',which='minor',length=tickLength/2,width=tickWidth/2,labelsize=tickFontSize)
+
+colors=[[.2,.2,.2],[.4,.4,.4],[.6,.6,.6]]
+
+f.text(0.5,0.23,'H',fontsize=letterLabelSize,fontname='roboto')
+ax = f.add_subplot(gs[2,2])
+ax.hlines(0,-1,21,color='k',linestyle='dashed',linewidth=2)
+ax.scatter(burstSizes_0,normvarAs_0,color=colors[0],label='$P_{prod,A}=10^{-2}$')
+ax.scatter(burstSizes_1,normvarAs_1,color=colors[1],label='$P_{prod,A}=10^{-1}$')
+ax.scatter(burstSizes_2,normvarAs_2,color=colors[2],label='$P_{prod,A}=10^{0}$')
+ax.legend(frameon=1,fontsize=14,loc='upper left',bbox_to_anchor=[.25,.25,.5,.5])
+ax.set_xlabel('$P_A$ burst size',fontsize=axisFontSize)
+ax.set_xlim([0,20.4])
+ax.set_xticks(np.linspace(0,20,5))
+ax.set_xticks(np.linspace(0,20,21),[],minor=1)
+ax.set_ylim([-1,1])
+ax.set_yticks(np.linspace(-1,1,5))
+ax.set_yticks(np.linspace(-1,1,21),[],minor=1)
+ax.spines['left'].set_linewidth(tickWidth)
+ax.spines['bottom'].set_linewidth(tickWidth)
+ax.spines['right'].set_linewidth(0)
+ax.spines['top'].set_linewidth(0)
+ax.tick_params(axis='both',width=tickWidth,length=tickLength,labelsize=tickFontSize)
+ax.tick_params(axis='both',which='minor',length=tickLength/2,width=tickWidth/2,labelsize=tickFontSize)
+
+f.text(0.74,0.23,'I',fontsize=letterLabelSize,fontname='roboto')
+ax = f.add_subplot(gs[2,3])
+ax.hlines(0,0,10**4,color='k',linewidth=plotWidth,linestyle='dashed')
+ax.scatter(varTccs,1-np.var(dsis[:,:,0],axis=1)/np.var(drnd[:,:,0],axis=1),color=randomColor)
+ax.set_xscale('log')
+ax.set_xlabel('Cell Cycle Variation ($\sigma_{T_{cc}}$)',fontsize=axisFontSize)
+ax.set_xticks(np.concatenate((np.linspace(1,10,10),np.linspace(10,100,10),np.linspace(100,1000,10))),[],minor=1)
+ax.set_xlim([0.8,280])
+ax.set_ylim([-1,1])
+ax.set_yticks(np.linspace(-1,1,5))
+ax.set_yticks(np.linspace(-1,1,21),[],minor=1)
+ax.spines['left'].set_linewidth(tickWidth)
+ax.spines['bottom'].set_linewidth(tickWidth)
+ax.spines['right'].set_linewidth(0)
+ax.spines['top'].set_linewidth(0)
+ax.tick_params(axis='both',length=tickLength,width=tickWidth,labelsize=tickFontSize)
+ax.tick_params(axis='both',which='minor',length=tickLength/2,width=tickWidth/2,labelsize=tickFontSize)
+
+plt.subplots_adjust(top = .85, bottom = 0.065, right = .97, left = 0.09)
+plt.show()
+
+#%% Figure 3 (Adjusting LAS): Pull Data 
 
 os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/analyticalData')
 with open('motifs_prodsat_sweepdata_reduced.pickle','rb') as f:
@@ -166,106 +377,15 @@ colors[:,2] = np.linspace(255/255,153/255,len(Rkcats))
 RkcatColors = ListedColormap(colors)
 linestyles = ['solid','dotted','dashed','dashdot']
 
-#%% Figure 2 (Toy Model): Plot 
 
-As = PprodAs * Tcc_prodAsweep
-Bs = 3/2 * PprodAs * kcatA_prodAsweep * Tcc_prodAsweep**2
-dotsize= 100
 
-def var_dA_sis(pprod,Tcc):
-    return 2*pprod*Tcc
+#%% Figure 3 (Adjusting LAS): Plot 
 
-def var_dA_rnd(pprod,Tcc):
-    return 2*pprod*Tcc
+f = plt.figure(figsize=(8,6))
+gs = GridSpec(2,2,figure=f,wspace=0.5,hspace=0.5)
 
-def var_dB_sis(kcat,Pprod,Tcc):
-    return 3*kcat*Pprod*Tcc**2
-
-def var_dB_rnd(kcat,Pprod,Tcc):
-    return 3*kcat*Pprod*Tcc**2 + 20/9*kcat**2*Pprod*Tcc**3
-
-f = plt.figure(figsize=(16,6))
-gs = GridSpec(2,5,figure=f,wspace=0.7,hspace=1)
-
-f.text(0.001,0.92,'A',fontsize=letterLabelSize,fontname='roboto')
-ax = f.add_subplot([0.01,0.5,.23,.5])
-ax.imshow(prodonly)
-ax.axis('off')
-
-f.text(0.245,0.92,'B',fontsize=letterLabelSize,fontname='roboto')
-ax = f.add_subplot([0.31,0.63,.15,.32])
-ax.scatter(0,1,2,color='white',label='Numerical')
-ax.scatter(As,np.var(drnds[:,:,0],axis=1),color=randomColor,label='$\Delta\sigma^2_{[A],rnd}$',s=dotsize,alpha=0.5)
-ax.scatter(As,np.var(dsiss[:,:,0],axis=1),color=enzymeColor,label='$\Delta\sigma^2_{[A],sis}$',s=dotsize,alpha=0.5)
-ax.hlines(0,1,2,color='white',label='Analytical')
-ax.plot(As,var_dA_rnd(PprodAs,Tcc_prodAsweep),color=randomColor,linestyle='dashed',label='$\Delta\sigma^2_{[A],rnd}$')
-ax.plot(As,var_dA_sis(PprodAs,Tcc_prodAsweep),color=enzymeColor,linestyle='dotted',label='$\Delta\sigma^2_{[A],sis}$')
-ax.legend(frameon=0,fontsize=10,ncol=2,loc='upper left',bbox_to_anchor=[-.06,.7,.5,.5])
-ax.set_xlabel('Enzyme Amt. ($[A]_{eq}$)',fontsize=axisFontSize,labelpad=0)
-ylabel = ax.set_ylabel('Var. Diff. ($\sigma^2_{\Delta [A]}$)',fontsize=axisFontSize,labelpad=0)
-ylabel.set_position((0,0.35))
-ax.set_xscale('log')
-ax.set_yscale('log')
-ax.set_xlim([6*10**(-1),2*10**5])
-ax.set_xticks(np.logspace(0,5,6))
-ax.set_xticks(returnLogMinorTicks(0,5),[],minor=1)
-ax.set_ylim([1,10**8])
-ax.set_yticks(np.logspace(0,8,5))
-ax.set_ylim([0.5,10**8])
-ax.set_yticks(returnLogMinorTicks(0,8),[],minor=1)
-ax.spines['left'].set_linewidth(tickWidth)
-ax.spines['left'].set_color(enzymeColor)
-ax.spines['bottom'].set_linewidth(tickWidth)
-ax.spines['right'].set_linewidth(0)
-ax.spines['top'].set_linewidth(0)
-ax.tick_params(axis='both',width=tickWidth,length=tickLength,labelsize=tickFontSize)
-ax.tick_params(axis='both',which='minor',length=tickLength/2,width=tickWidth/2,labelsize=tickFontSize)
-ax.tick_params(axis='y',colors=enzymeColor)
-ax.tick_params(axis='y',which='minor',colors=enzymeColor)
-ax = f.add_subplot([0.37,0.63,.12,0.12])
-ax.imshow(LASneg)
-ax.axis('off')
-
-f.text(0.47,0.92,'C',fontsize=letterLabelSize,fontname='roboto')
-ax = f.add_subplot([0.54,0.63,.15,.32])
-ax.scatter(0,1,2,color='white',label='Numerical')
-ax.scatter(As,np.var(drnds[:,:,1],axis=1),color=randomColor,label='$\Delta\sigma^2_{[B],rnd}$',s=dotsize,alpha=0.5)
-ax.scatter(As,np.var(dsiss[:,:,1],axis=1),color=signalColor,label='$\Delta\sigma^2_{[B],sis}$',s=dotsize,alpha=0.5)
-ax.hlines(0,1,2,color='white',label='Analytical')
-ax.plot(As,var_dB_rnd(kcatA_prodAsweep,PprodAs,Tcc_prodAsweep),color=randomColor,linestyle='dashed',label='$\Delta\sigma^2_{[B],rnd}$')
-ax.plot(As,var_dB_sis(kcatA_prodAsweep,PprodAs,Tcc_prodAsweep),color=signalColor,linestyle='dotted',label='$\Delta\sigma^2_{[B],sis}$')
-ax.legend(frameon=0,fontsize=10,ncol=2,loc='upper left',bbox_to_anchor=[-.05,.7,.5,.5])
-ax.set_xlabel('Enzyme Amt. ($[A]_{eq}$)',fontsize=axisFontSize,labelpad=0)
-ylabel = ax.set_ylabel('Var. Diff. ($\sigma^2_{\Delta [B]}$)',fontsize=axisFontSize,labelpad=0)
-ylabel.set_position((0,0.35))
-ax.set_xscale('log')
-ax.set_yscale('log')
-ax.set_xlim([6*10**(-1),2*10**5])
-ax.set_xticks(np.logspace(0,5,6))
-ax.set_xticks(returnLogMinorTicks(0,5),[],minor=1)
-ax.set_yticks(np.logspace(2,12,6))
-ax.set_yticks(returnLogMinorTicks(2,12),[],minor=1)
-ax.set_ylim([10**2,10**12])
-ax.tick_params(axis='both',which='minor',length=tickLength/2,width=tickWidth/2,labelsize=tickFontSize)
-ax.spines['left'].set_linewidth(tickWidth)
-ax.spines['left'].set_color(signalColor)
-ax.spines['bottom'].set_linewidth(tickWidth)
-ax.spines['right'].set_linewidth(0)
-ax.spines['top'].set_linewidth(0)
-ax.tick_params(axis='both',width=tickWidth,length=tickLength,labelsize=tickFontSize)
-ax.tick_params(axis='y',colors=signalColor)
-ax.tick_params(axis='y',which='minor',colors=signalColor)
-ax = f.add_subplot([0.6,0.64,.1,0.1])
-ax.imshow(LASpos)
-ax.axis('off')
-
-f.text(0.7,0.92,'D',fontsize=letterLabelSize,fontname='roboto')
-ax = f.add_subplot([0.7,0.5,.3,.5])
-ax.imshow(differences_graphic)
-ax.axis('off')
-
-f.text(0.001,0.4,'E',fontsize=letterLabelSize,fontname='roboto')
-ax = f.add_subplot([0.09,0.13,.15,.32])
+f.text(-0.06,0.95,'A',fontsize=letterLabelSize,fontname='roboto')
+ax = f.add_subplot(gs[0,0])
 ax.vlines(27/20,-.2,1,color='gray',linestyle=(0, (8, 8)),zorder=0)
 ax.hlines(0,0,2*10**5,color='k',linestyle='dashed',linewidth=plotWidth,zorder=0)
 ax.plot(kTrange,normdvar(kTrange),color='k',linewidth=plotWidth,zorder=1,label='Analytical')
@@ -291,13 +411,13 @@ ax.spines['top'].set_linewidth(0)
 ax.tick_params(axis='both',width=tickWidth,length=tickLength,labelsize=tickFontSize)
 ax.tick_params(axis='both',which='minor',length=tickLength/2,width=tickWidth/2,labelsize=tickFontSize)
 
-f.text(0.25,0.4,'F',fontsize=letterLabelSize,fontname='roboto')
-ax = f.add_subplot([0.2,0.01,.4,0.45])
+f.text(0.46,0.95,'B',fontsize=letterLabelSize,fontname='roboto')
+ax = f.add_subplot([0.52,0.55,.48,0.45])
 ax.imshow(amp_diagram)
 ax.axis('off')
 
-f.text(0.53,0.4,'G',fontsize=letterLabelSize,fontname='roboto')
-ax = f.add_subplot([0.6,0.13,.15,.32])
+f.text(-0.06,0.43,'C',fontsize=letterLabelSize,fontname='roboto')
+ax = f.add_subplot(gs[1,0])
 ax.hlines(0,0,2*10**5,color='k',linestyle='dashed',linewidth=plotWidth)
 ax.plot(times,normvars[0,0],label='A',color=enzymeColor,linewidth=2)
 ax.plot(times,normvars[0,2],label='B',color=signalColor,linewidth=2)
@@ -317,8 +437,8 @@ ax.spines['bottom'].set_linewidth(tickWidth)
 ax.spines['right'].set_linewidth(0)
 ax.spines['top'].set_linewidth(0)
 
-f.text(0.76,0.4,'H',fontsize=letterLabelSize,fontname='roboto')
-ax = f.add_subplot([0.84,0.13,.15,.32])
+f.text(0.46,0.43,'D',fontsize=letterLabelSize,fontname='roboto')
+ax = f.add_subplot(gs[1,1])
 ax.hlines(0,0,2*10**5,color='k',linestyle='dashed',linewidth=plotWidth)
 ns = [0,5,9,18]
 colors = np.zeros([len(ns),3])
@@ -343,8 +463,7 @@ ax.spines['top'].set_linewidth(0)
 ax.tick_params(axis='both',length=tickLength,width=tickWidth,labelsize=tickFontSize)
 ax.tick_params(axis='both',which='minor',length=tickLength/2,width=tickWidth/2,labelsize=tickFontSize)
 
-
-plt.subplots_adjust(top = 0.99, bottom = 0.13, right = 0.98, left = 0.09)
+plt.subplots_adjust(top = 0.99, bottom = 0.13, right = 0.98, left = 0.1)
 plt.show()
 
 
@@ -1013,135 +1132,6 @@ ax2.spines['right'].set_linewidth(tickWidth)
 ax2.spines['right'].set_color('grey')
 ax2.spines['top'].set_linewidth(0)
 ax2.spines['bottom'].set_linewidth(tickWidth)
-
-#%% OLD Figure S3 (Conceptual Model): Pull Data 
-
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/graphics')
-graphic = img.imread('ngigraphic65.png')
-
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/asymmetric')
-with open('asymmetric_bias_screen.pickle','rb') as f:
-    biases,Aeqs,normvarAs = pickle.load(f)
-
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/satprod')
-with open('satprod_prodAsweep.pickle','rb') as f:
-    PprodAs,Tcc,kcatA,Aeqs,drndA,dsisA = pickle.load(f)
-prodAs = np.logspace(-3,2,6)
-As = prodAs * 1000 * 2
-
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/burstSize')
-with open('burstSize_prodA-2.pickle','rb') as f:
-    burstSizes_0,prodAs_0,Aeqs_0,Beqs_0,normvarAs_0,normvarBs_0 = pickle.load(f)
-with open('burstSize_prodA-1.pickle','rb') as f:
-    burstSizes_1,prodAs_1,Aeqs_1,Beqs_1,normvarAs_1,normvarBs_1 = pickle.load(f)
-with open('burstSize_prodA-0.pickle','rb') as f:
-    burstSizes_2,prodAs_2,Aeqs_2,Beqs_2,normvarAs_2,normvarBs_2 = pickle.load(f)
-colors = [enzymeColor,color_L,[68/255,10/255,21/255]]
-
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/varTcc')
-with open('varTcc_diffs.pickle','rb') as f:
-   varTccs,dsis,drnd = pickle.load(f)
-
-
-
-#%% OLD Figure S3 (Conceptual Model): Plot
-
-f = plt.figure(figsize=(16,13))
-gs = GridSpec(4,4,figure=f,wspace=0.4,hspace=0.4)
-
-f.text(0.001,0.965,'A',fontsize=letterLabelSize,fontname='roboto')
-f.text(0.26,0.965,'B',fontsize=letterLabelSize,fontname='roboto')
-f.text(0.73,0.965,'C',fontsize=letterLabelSize,fontname='roboto')
-f.text(0.001,0.49,'D',fontsize=letterLabelSize,fontname='roboto')
-
-ax = f.add_subplot([0,0.21,1,0.8])
-ax.imshow(graphic)
-ax.axis('off')
-
-f.text(0.001,0.19,'E',fontsize=letterLabelSize,fontname='roboto')
-ax = f.add_subplot(gs[3:4,0:1])
-ax.hlines(0,0,1,color='k',linestyle='dashed',linewidth=plotWidth)
-ax.scatter(biases,normvarAs,color=randomColor)
-ax.set_xlim([0.5,1.01])
-ax.set_xticks(np.linspace(0.5,1,6))
-ax.set_xticks(np.linspace(0.5,1,11),[],minor=1)
-ax.set_ylim([-1,1])
-ax.set_yticks(np.linspace(-1,1,5))
-ax.set_yticks(np.linspace(-1,1,21),[],minor=1)
-ax.set_xlabel('Partition Bias',fontsize=axisFontSize)
-ylabel = ax.set_ylabel('LAS ($\Delta \hat{\sigma}^2_{\Delta [A]})$',fontsize=axisFontSize,labelpad=-6)
-ylabel.set_position((0,0.5))
-ax.spines['left'].set_linewidth(tickWidth)
-ax.spines['bottom'].set_linewidth(tickWidth)
-ax.spines['right'].set_linewidth(0)
-ax.spines['top'].set_linewidth(0)
-ax.tick_params(axis='both',length=tickLength,width=tickWidth,labelsize=tickFontSize)
-ax.tick_params(axis='both',which='minor',length=tickLength/2,width=tickWidth/2,labelsize=tickFontSize)
-
-f.text(0.27,0.19,'F',fontsize=letterLabelSize,fontname='roboto')
-ax = f.add_subplot(gs[3:4,1:2])
-ax.hlines(0,0,10**6,color='k',linestyle='dashed',linewidth=plotWidth)
-ax.scatter(As,1-np.var(dsisA[:,:,0],axis=1)/np.var(drndA[:,:,0],axis=1),color=randomColor)
-ax.set_xlabel('Concentration ($[A]_{eq}$)',fontsize=axisFontSize,labelpad=0)
-# ax.set_ylabel('Norm. Similarity ($\sigma^2_{\Delta [A]}$)',fontsize=axisFontSize,labelpad=0)
-ax.set_xscale('log')
-ax.set_xlim([10**0,10**6])
-ax.set_xticks(np.logspace(0,6,4))
-ax.set_xticks(returnLogMinorTicks(0,6),[],minor=1)
-ax.set_ylim([-1,1])
-ax.set_yticks(np.linspace(-1,1,5))
-ax.set_yticks(np.linspace(-1,1,21),[],minor=1)
-ax.spines['left'].set_linewidth(tickWidth)
-ax.spines['bottom'].set_linewidth(tickWidth)
-ax.spines['right'].set_linewidth(0)
-ax.spines['top'].set_linewidth(0)
-ax.tick_params(axis='both',width=tickWidth,length=tickLength,labelsize=tickFontSize)
-ax.tick_params(axis='both',which='minor',length=tickLength/2,width=tickWidth/2,labelsize=tickFontSize)
-
-colors=[[.2,.2,.2],[.4,.4,.4],[.6,.6,.6]]
-
-f.text(0.5,0.19,'G',fontsize=letterLabelSize,fontname='roboto')
-ax = f.add_subplot(gs[3:4,2:3])
-ax.hlines(0,-1,21,color='k',linestyle='dashed',linewidth=2)
-ax.scatter(burstSizes_0,normvarAs_0,color=colors[0],label='$P_{prod,A}=10^{-2}$')
-ax.scatter(burstSizes_1,normvarAs_1,color=colors[1],label='$P_{prod,A}=10^{-1}$')
-ax.scatter(burstSizes_2,normvarAs_2,color=colors[2],label='$P_{prod,A}=10^{0}$')
-ax.legend(frameon=1,fontsize=14,loc='upper left',bbox_to_anchor=[.25,.25,.5,.5])
-ax.set_xlabel('$P_A$ burst size',fontsize=axisFontSize)
-ax.set_xlim([0,20.4])
-ax.set_xticks(np.linspace(0,20,5))
-ax.set_xticks(np.linspace(0,20,21),[],minor=1)
-ax.set_ylim([-1,1])
-ax.set_yticks(np.linspace(-1,1,5))
-ax.set_yticks(np.linspace(-1,1,21),[],minor=1)
-ax.spines['left'].set_linewidth(tickWidth)
-ax.spines['bottom'].set_linewidth(tickWidth)
-ax.spines['right'].set_linewidth(0)
-ax.spines['top'].set_linewidth(0)
-ax.tick_params(axis='both',width=tickWidth,length=tickLength,labelsize=tickFontSize)
-ax.tick_params(axis='both',which='minor',length=tickLength/2,width=tickWidth/2,labelsize=tickFontSize)
-
-f.text(0.74,0.19,'H',fontsize=letterLabelSize,fontname='roboto')
-ax = f.add_subplot(gs[3:4,3:4])
-ax.hlines(0,0,10**4,color='k',linewidth=plotWidth,linestyle='dashed')
-ax.scatter(varTccs,1-np.var(dsis[:,:,0],axis=1)/np.var(drnd[:,:,0],axis=1),color=randomColor)
-ax.set_xscale('log')
-ax.set_xlabel('Cell Cycle Variation ($\sigma_{T_{cc}}$)',fontsize=axisFontSize)
-ax.set_xticks(np.concatenate((np.linspace(1,10,10),np.linspace(10,100,10),np.linspace(100,1000,10))),[],minor=1)
-ax.set_xlim([0.8,280])
-ax.set_ylim([-1,1])
-ax.set_yticks(np.linspace(-1,1,5))
-ax.set_yticks(np.linspace(-1,1,21),[],minor=1)
-ax.spines['left'].set_linewidth(tickWidth)
-ax.spines['bottom'].set_linewidth(tickWidth)
-ax.spines['right'].set_linewidth(0)
-ax.spines['top'].set_linewidth(0)
-ax.tick_params(axis='both',length=tickLength,width=tickWidth,labelsize=tickFontSize)
-ax.tick_params(axis='both',which='minor',length=tickLength/2,width=tickWidth/2,labelsize=tickFontSize)
-
-plt.subplots_adjust(top = .85, bottom = 0.065, right = .97, left = 0.09)
-plt.show()
-
 
 #%% Figure S4 (Saturated Production, kcat and Tcc sweep, full): pull data
 
