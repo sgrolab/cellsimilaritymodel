@@ -92,75 +92,7 @@ for file in os.listdir():
     dsiss[index] = dsis
 
 
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/analyticalData')
-with open('motifs_prodsat_sweepdata_reduced.pickle','rb') as f:
-    Tccs,Tccvar_dsis,Tccvar_drnd,kcats_prodsat,kcatvar_dsis,kcatvar_drnd = pickle.load(f)
-kcatMrange = np.logspace(-4,0,61)
-Tccrange = np.logspace(2,4,11)
-kcat = 0.01
-Pprod = 0.01
-Tcc = 1000
-kTrange = np.logspace(-2,3,41)
 
-prodAs = np.logspace(-2,0,3)
-kcatAs = np.logspace(-4,0,9)
-Tccs_sweep = np.logspace(2,4,5)
-
-normvars_Tcc = 1-Tccvar_dsis[:,1]/Tccvar_drnd[:,1]
-normvars_kcat = 1-kcatvar_dsis[:,1]/kcatvar_drnd[:,1]
-
-params_Tcc,cov_Tcc = curve_fit(logFit,Tccs_sweep*kcat,normvars_Tcc,p0=[1,100,1])
-params_kcat,cov_kcat = curve_fit(logFit,kcats_prodsat*Tcc,normvars_kcat,p0=[1,100,1])
-
-kcatColorRange = [[255/255,184/255,98/255],[231/255,117/255,78/255]]
-kcatColors = np.transpose(np.array((np.linspace(255/255,231/255,4),np.linspace(184/255,117/255,4),np.linspace(98/255,78/255,4))))
-
-kcatA2_kcats = np.zeros(13)
-kcatA2_normvarBs = np.zeros(13)
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/prodsat_sweep/prodsat_kcatsweep')
-for file in os.listdir():
-    kcatAindex = int(file.split('_')[3].split('.')[0])
-    
-    with open(file,'rb') as f:
-        kcatA,normvarA,normvarB = pickle.load(f)
-    
-    kcatA2_kcats[kcatAindex] = kcatA
-    kcatA2_normvarBs[kcatAindex] = normvarB
-
-Tccs2_Tcc = np.zeros(5)
-Tccs2_normvarBs = np.zeros(5)
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/prodsat_sweep/prodsat_Tccsweep')
-for file in os.listdir():
-    Tccindex = int(file.split('_')[3].split('.')[0])
-    
-    with open(file,'rb') as f:
-        Tcc,normvarA,normvarB = pickle.load(f)
-    
-    Tccs2_Tcc[Tccindex] = Tcc
-    Tccs2_normvarBs[Tccindex] = normvarB
-    
-Tcc = 1000
-
-times = np.linspace(0,10,1001)
-normvars = np.zeros([20,6,1001])
-
-Rkcats = np.zeros(20)
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/prodanddeg/Rkcatsweep2')
-for file in os.listdir():
-    index = int(file.split('_')[1].split('.')[0])
-    
-    with open(file,'rb') as f:
-        kcatA_Rkcat_sweep,kcatB,normvar = pickle.load(f)
-    
-    normvars[index] = normvar
-    Rkcats[index] = kcatB/kcatA_Rkcat_sweep
-
-colors = np.ones([len(Rkcats),4])
-colors[:,0] = np.linspace(112/255,52/255,len(Rkcats))
-colors[:,1] = np.linspace(233/255,137/255,len(Rkcats))
-colors[:,2] = np.linspace(255/255,153/255,len(Rkcats))
-RkcatColors = ListedColormap(colors)
-linestyles = ['solid','dotted','dashed','dashdot']
 
 #%% Figure 2 (Toy Model): Plot 
 
@@ -260,6 +192,78 @@ ax = f.add_subplot([0.7,0.5,.3,.5])
 ax.imshow(differences_graphic)
 ax.axis('off')
 
+#%% Figure 3 (Adjusting LAS): Pull Data 
+
+os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/analyticalData')
+with open('motifs_prodsat_sweepdata_reduced.pickle','rb') as f:
+    Tccs,Tccvar_dsis,Tccvar_drnd,kcats_prodsat,kcatvar_dsis,kcatvar_drnd = pickle.load(f)
+kcatMrange = np.logspace(-4,0,61)
+Tccrange = np.logspace(2,4,11)
+kcat = 0.01
+Pprod = 0.01
+Tcc = 1000
+kTrange = np.logspace(-2,3,41)
+
+prodAs = np.logspace(-2,0,3)
+kcatAs = np.logspace(-4,0,9)
+Tccs_sweep = np.logspace(2,4,5)
+
+normvars_Tcc = 1-Tccvar_dsis[:,1]/Tccvar_drnd[:,1]
+normvars_kcat = 1-kcatvar_dsis[:,1]/kcatvar_drnd[:,1]
+
+params_Tcc,cov_Tcc = curve_fit(logFit,Tccs_sweep*kcat,normvars_Tcc,p0=[1,100,1])
+params_kcat,cov_kcat = curve_fit(logFit,kcats_prodsat*Tcc,normvars_kcat,p0=[1,100,1])
+
+kcatColorRange = [[255/255,184/255,98/255],[231/255,117/255,78/255]]
+kcatColors = np.transpose(np.array((np.linspace(255/255,231/255,4),np.linspace(184/255,117/255,4),np.linspace(98/255,78/255,4))))
+
+kcatA2_kcats = np.zeros(13)
+kcatA2_normvarBs = np.zeros(13)
+os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/prodsat_sweep/prodsat_kcatsweep')
+for file in os.listdir():
+    kcatAindex = int(file.split('_')[3].split('.')[0])
+    
+    with open(file,'rb') as f:
+        kcatA,normvarA,normvarB = pickle.load(f)
+    
+    kcatA2_kcats[kcatAindex] = kcatA
+    kcatA2_normvarBs[kcatAindex] = normvarB
+
+Tccs2_Tcc = np.zeros(5)
+Tccs2_normvarBs = np.zeros(5)
+os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/prodsat_sweep/prodsat_Tccsweep')
+for file in os.listdir():
+    Tccindex = int(file.split('_')[3].split('.')[0])
+    
+    with open(file,'rb') as f:
+        Tcc,normvarA,normvarB = pickle.load(f)
+    
+    Tccs2_Tcc[Tccindex] = Tcc
+    Tccs2_normvarBs[Tccindex] = normvarB
+    
+Tcc = 1000
+
+times = np.linspace(0,10,1001)
+normvars = np.zeros([20,6,1001])
+
+Rkcats = np.zeros(20)
+os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/prodanddeg/Rkcatsweep2')
+for file in os.listdir():
+    index = int(file.split('_')[1].split('.')[0])
+    
+    with open(file,'rb') as f:
+        kcatA_Rkcat_sweep,kcatB,normvar = pickle.load(f)
+    
+    normvars[index] = normvar
+    Rkcats[index] = kcatB/kcatA_Rkcat_sweep
+
+colors = np.ones([len(Rkcats),4])
+colors[:,0] = np.linspace(112/255,52/255,len(Rkcats))
+colors[:,1] = np.linspace(233/255,137/255,len(Rkcats))
+colors[:,2] = np.linspace(255/255,153/255,len(Rkcats))
+RkcatColors = ListedColormap(colors)
+linestyles = ['solid','dotted','dashed','dashdot']
+
 #%% Figure 3 (Adjusting LAS): Plot 
 
 f = plt.figure(figsize=(8,6))
@@ -318,7 +322,7 @@ ax.spines['bottom'].set_linewidth(tickWidth)
 ax.spines['right'].set_linewidth(0)
 ax.spines['top'].set_linewidth(0)
 
-f.text(0.46,0.43,'H',fontsize=letterLabelSize,fontname='roboto')
+f.text(0.46,0.43,'D',fontsize=letterLabelSize,fontname='roboto')
 ax = f.add_subplot(gs[1,1])
 ax.hlines(0,0,2*10**5,color='k',linestyle='dashed',linewidth=plotWidth)
 ns = [0,5,9,18]
@@ -343,7 +347,6 @@ ax.spines['right'].set_linewidth(0)
 ax.spines['top'].set_linewidth(0)
 ax.tick_params(axis='both',length=tickLength,width=tickWidth,labelsize=tickFontSize)
 ax.tick_params(axis='both',which='minor',length=tickLength/2,width=tickWidth/2,labelsize=tickFontSize)
-
 
 plt.subplots_adjust(top = 0.99, bottom = 0.13, right = 0.98, left = 0.1)
 plt.show()
