@@ -8,10 +8,6 @@ from matplotlib import patches as mpatches
 from matplotlib.colors import ListedColormap
 from scipy.optimize import curve_fit
 from scipy import stats
-sys.path.insert(0,'//prfs.hhmi.org/sgrolab/mark/comp_proj/motifs')
-# import motiffunc as mf
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/gridcells')
-# import gridfunc as gf
 
 letterLabelSize=42
 axisFontSize=20
@@ -264,8 +260,13 @@ ax = f.add_subplot([0.7,0.5,.3,.5])
 ax.imshow(differences_graphic)
 ax.axis('off')
 
-f.text(0.001,0.4,'E',fontsize=letterLabelSize,fontname='roboto')
-ax = f.add_subplot([0.09,0.13,.15,.32])
+#%% Figure 3 (Adjusting LAS): Plot 
+
+f = plt.figure(figsize=(8,6))
+gs = GridSpec(2,2,figure=f,wspace=0.5,hspace=0.5)
+
+f.text(-0.06,0.95,'A',fontsize=letterLabelSize,fontname='roboto')
+ax = f.add_subplot(gs[0,0])
 ax.vlines(27/20,-.2,1,color='gray',linestyle=(0, (8, 8)),zorder=0)
 ax.hlines(0,0,2*10**5,color='k',linestyle='dashed',linewidth=plotWidth,zorder=0)
 ax.plot(kTrange,normdvar(kTrange),color='k',linewidth=plotWidth,zorder=1,label='Analytical')
@@ -291,13 +292,13 @@ ax.spines['top'].set_linewidth(0)
 ax.tick_params(axis='both',width=tickWidth,length=tickLength,labelsize=tickFontSize)
 ax.tick_params(axis='both',which='minor',length=tickLength/2,width=tickWidth/2,labelsize=tickFontSize)
 
-f.text(0.25,0.4,'F',fontsize=letterLabelSize,fontname='roboto')
-ax = f.add_subplot([0.2,0.01,.4,0.45])
+f.text(0.46,0.95,'B',fontsize=letterLabelSize,fontname='roboto')
+ax = f.add_subplot([0.52,0.55,.48,0.45])
 ax.imshow(amp_diagram)
 ax.axis('off')
 
-f.text(0.53,0.4,'G',fontsize=letterLabelSize,fontname='roboto')
-ax = f.add_subplot([0.6,0.13,.15,.32])
+f.text(-0.06,0.43,'C',fontsize=letterLabelSize,fontname='roboto')
+ax = f.add_subplot(gs[1,0])
 ax.hlines(0,0,2*10**5,color='k',linestyle='dashed',linewidth=plotWidth)
 ax.plot(times,normvars[0,0],label='A',color=enzymeColor,linewidth=2)
 ax.plot(times,normvars[0,2],label='B',color=signalColor,linewidth=2)
@@ -317,8 +318,8 @@ ax.spines['bottom'].set_linewidth(tickWidth)
 ax.spines['right'].set_linewidth(0)
 ax.spines['top'].set_linewidth(0)
 
-f.text(0.76,0.4,'H',fontsize=letterLabelSize,fontname='roboto')
-ax = f.add_subplot([0.84,0.13,.15,.32])
+f.text(0.46,0.43,'H',fontsize=letterLabelSize,fontname='roboto')
+ax = f.add_subplot(gs[1,1])
 ax.hlines(0,0,2*10**5,color='k',linestyle='dashed',linewidth=plotWidth)
 ns = [0,5,9,18]
 colors = np.zeros([len(ns),3])
@@ -344,7 +345,7 @@ ax.tick_params(axis='both',length=tickLength,width=tickWidth,labelsize=tickFontS
 ax.tick_params(axis='both',which='minor',length=tickLength/2,width=tickWidth/2,labelsize=tickFontSize)
 
 
-plt.subplots_adjust(top = 0.99, bottom = 0.13, right = 0.98, left = 0.09)
+plt.subplots_adjust(top = 0.99, bottom = 0.13, right = 0.98, left = 0.1)
 plt.show()
 
 
