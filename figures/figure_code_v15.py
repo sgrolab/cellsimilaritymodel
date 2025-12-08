@@ -2513,8 +2513,7 @@ ax.axis('off')
 
 #%% Figure S18 (Toy Model Brekaout): pull data
 
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/graphics')
-pathway = img.imread('ngigraphic89.png')
+pathway = img.imread('//prfs.hhmi.org/sgrolab/mark/comp_proj/graphics/ngigraphic89.png')
 
 #%% Figure S18 (Toy Model Brekaout): Plot
 
