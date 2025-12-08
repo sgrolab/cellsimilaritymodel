@@ -1,3 +1,5 @@
 # ignore virtual environment 
 .venv/
 
+# ignore Jupyter notebok consoles
+consoles/
