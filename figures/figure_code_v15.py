@@ -8,6 +8,7 @@ from matplotlib import patches as mpatches
 from matplotlib.colors import ListedColormap
 from scipy.optimize import curve_fit
 from scipy import stats
+from pathlib import Path 
 
 letterLabelSize=42
 axisFontSize=20
@@ -37,11 +38,11 @@ def returnLogMinorTicks(start,stop):
         tickvals = np.concatenate((tickvals,np.linspace(10**i,10**(i+1),10)))
     return tickvals
 
+PROJECT_DIR = Path("//prfs.hhmi.org/sgrolab/mark/comp_proj/")
+
 #%% Figure 1 Concept: pull data 
 
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/graphics')
-metricgraphic = img.imread('ngigraphic82.png')
-
+metricgraphic = img.imread(PROJECT_DIR / 'graphics/ngigraphic82.png')
 
 #%% Figure 1 (Concept): plot 
 
@@ -63,17 +64,16 @@ def normdvar(kT):
 def logFit(x,xmax,Kx,n):
     return xmax*x**n/(Kx**n+x**n)
 
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/graphics')
-prodonly = img.imread('ngigraphic86.png')
+prodonly = img.imread(PROJECT_DIR / 'graphics/ngigraphic86.png')
 
-LASpos = img.imread('ngigraphic79.png')
-LASneg = img.imread('ngigraphic78.png')
-differences_graphic = img.imread('ngigraphic80.png')
-toymodel_enzymeA = img.imread('ngigraphic83.png')
-toymodel_kcatA = img.imread('ngigraphic84.png')
-toymodel_kcatB = img.imread('ngigraphic85.png')
+LASpos = img.imread(PROJECT_DIR / 'graphics/ngigraphic79.png')
+LASneg = img.imread(PROJECT_DIR / 'graphics/ngigraphic78.png')
+differences_graphic = img.imread(PROJECT_DIR / 'graphics/ngigraphic80.png')
+toymodel_enzymeA = img.imread(PROJECT_DIR / 'graphics/ngigraphic83.png')
+toymodel_kcatA = img.imread(PROJECT_DIR / 'graphics/ngigraphic84.png')
+toymodel_kcatB = img.imread(PROJECT_DIR / 'graphics/ngigraphic85.png')
 
-amp_diagram = img.imread('ngigraphic87.png')
+amp_diagram = img.imread(PROJECT_DIR / 'graphics/ngigraphic87.png')
 
 PprodAs = np.logspace(-3,2,6)
 Tcc_prodAsweep = 1000
@@ -81,40 +81,35 @@ kcatA_prodAsweep = 0.1
 drnds = np.zeros([len(PprodAs),1000,6])
 dsiss = np.zeros_like(drnds)
 
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/satprod/n1000')
-for file in os.listdir():
+for file in os.listdir(PROJECT_DIR / 'satprod/n1000'):
     index = int(file.split('_')[2].split('.')[0])
 
-    with open(file,'rb') as f:
+    filepath = os.path.join(PROJECT_DIR / 'satprod/n1000', file)
+    with open(filepath,'rb') as f:
         PprodA,Tcc,kcatA,motherA,motherB,drnd,dsis = pickle.load(f)
     
     drnds[index] = drnd
     dsiss[index] = dsis
 
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/graphics')
-graphic = img.imread('ngigraphic40.png')
+graphic = img.imread(PROJECT_DIR / 'graphics/ngigraphic40.png')
 
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/asymmetric')
-with open('asymmetric_bias_screen.pickle','rb') as f:
+with open(PROJECT_DIR / 'asymmetric/asymmetric_bias_screen.pickle','rb') as f:
     biases,Aeqs,normvarAs = pickle.load(f)
 
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/satprod')
-with open('satprod_prodAsweep.pickle','rb') as f:
+with open(PROJECT_DIR / 'satprod/satprod_prodAsweep.pickle','rb') as f:
     PprodAs,Tcc,kcatA,Aeqs,drndA,dsisA = pickle.load(f)
 prodAs = np.logspace(-3,2,6)
 As = prodAs * 1000 * 2
 
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/burstSize')
-with open('burstSize_prodA-2.pickle','rb') as f:
+with open(PROJECT_DIR / 'burstSize/burstSize_prodA-2.pickle','rb') as f:
     burstSizes_0,prodAs_0,Aeqs_0,Beqs_0,normvarAs_0,normvarBs_0 = pickle.load(f)
-with open('burstSize_prodA-1.pickle','rb') as f:
+with open(PROJECT_DIR / 'burstSize/burstSize_prodA-1.pickle','rb') as f:
     burstSizes_1,prodAs_1,Aeqs_1,Beqs_1,normvarAs_1,normvarBs_1 = pickle.load(f)
-with open('burstSize_prodA-0.pickle','rb') as f:
+with open(PROJECT_DIR / 'burstSize/burstSize_prodA-0.pickle','rb') as f:
     burstSizes_2,prodAs_2,Aeqs_2,Beqs_2,normvarAs_2,normvarBs_2 = pickle.load(f)
 colors = [enzymeColor,color_L,[68/255,10/255,21/255]]
 
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/varTcc')
-with open('varTcc_diffs.pickle','rb') as f:
+with open(PROJECT_DIR / 'varTcc/varTcc_diffs.pickle','rb') as f:
    varTccs,dsis,drnd = pickle.load(f)
 
 
@@ -307,8 +302,7 @@ plt.show()
 
 #%% Figure 3 (Adjusting LAS): Pull Data 
 
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/analyticalData')
-with open('motifs_prodsat_sweepdata_reduced.pickle','rb') as f:
+with open(PROJECT_DIR / 'analyticalData/motifs_prodsat_sweepdata_reduced.pickle','rb') as f:
     Tccs,Tccvar_dsis,Tccvar_drnd,kcats_prodsat,kcatvar_dsis,kcatvar_drnd = pickle.load(f)
 kcatMrange = np.logspace(-4,0,61)
 Tccrange = np.logspace(2,4,11)
@@ -332,11 +326,11 @@ kcatColors = np.transpose(np.array((np.linspace(255/255,231/255,4),np.linspace(1
 
 kcatA2_kcats = np.zeros(13)
 kcatA2_normvarBs = np.zeros(13)
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/prodsat_sweep/prodsat_kcatsweep')
-for file in os.listdir():
+for file in os.listdir(PROJECT_DIR / 'prodsat_sweep/prodsat_kcatsweep'):
     kcatAindex = int(file.split('_')[3].split('.')[0])
-    
-    with open(file,'rb') as f:
+
+    filepath = os.path.join(PROJECT_DIR / 'prodsat_sweep/prodsat_kcatsweep', file)
+    with open(filepath,'rb') as f:
         kcatA,normvarA,normvarB = pickle.load(f)
     
     kcatA2_kcats[kcatAindex] = kcatA
@@ -344,11 +338,11 @@ for file in os.listdir():
 
 Tccs2_Tcc = np.zeros(5)
 Tccs2_normvarBs = np.zeros(5)
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/prodsat_sweep/prodsat_Tccsweep')
-for file in os.listdir():
+for file in os.listdir(PROJECT_DIR / 'prodsat_sweep/prodsat_Tccsweep'):
     Tccindex = int(file.split('_')[3].split('.')[0])
     
-    with open(file,'rb') as f:
+    filepath = os.path.join(PROJECT_DIR / 'prodsat_sweep/prodsat_Tccsweep', file)
+    with open(filepath,'rb') as f:
         Tcc,normvarA,normvarB = pickle.load(f)
     
     Tccs2_Tcc[Tccindex] = Tcc
@@ -360,11 +354,11 @@ times = np.linspace(0,10,1001)
 normvars = np.zeros([20,6,1001])
 
 Rkcats = np.zeros(20)
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/prodanddeg/Rkcatsweep2')
-for file in os.listdir():
+for file in os.listdir(PROJECT_DIR / 'prodanddeg/Rkcatsweep2'):
     index = int(file.split('_')[1].split('.')[0])
     
-    with open(file,'rb') as f:
+    filepath = os.path.join(PROJECT_DIR / 'prodanddeg/Rkcatsweep2', file)
+    with open(filepath,'rb') as f:
         kcatA_Rkcat_sweep,kcatB,normvar = pickle.load(f)
     
     normvars[index] = normvar
@@ -376,7 +370,6 @@ colors[:,1] = np.linspace(233/255,137/255,len(Rkcats))
 colors[:,2] = np.linspace(255/255,153/255,len(Rkcats))
 RkcatColors = ListedColormap(colors)
 linestyles = ['solid','dotted','dashed','dashdot']
-
 
 
 #%% Figure 3 (Adjusting LAS): Plot 
@@ -468,15 +461,13 @@ plt.show()
 
 
 
-#%% Figure 3 (Production Motif): Pull Data 
+#%% Figure 4 (Production Motif): Pull Data 
 
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/graphics')
-prod = img.imread('ngigraphic88.png')
+prod = img.imread(PROJECT_DIR / 'graphics/ngigraphic88.png')
 
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/production')
-with open('production_prodBsweep5.pickle','rb') as f:
+with open(PROJECT_DIR / 'production/production_prodBsweep5.pickle','rb') as f:
     Ameans,Avars,Bmeans,Bvars,Cmeans,Cvars,normvarAs,normvarBs,normvarCs = pickle.load(f)
-with open('production_prodAprodBsweep1.pickle','rb') as f:
+with open(PROJECT_DIR / 'production/production_prodAprodBsweep1.pickle','rb') as f:
     Ameans1,Avars1,Bmeans1,Bvars1,Cmeans1,Cvars1,normvarAs1,normvarBs1,normvarCs1 = pickle.load(f)
 
 prodColorRange = [enzymeColor,[68/255,10/255,21/255]]
@@ -493,7 +484,7 @@ prodColors = np.transpose(np.array((np.linspace(prodColorRange[0][0],prodColorRa
                                     np.linspace(1,1,len(Ameans1)))))
 prodColorMap = ListedColormap(prodColors)
 
-#%% Figure 3 (Production Motif): Plot 
+#%% Figure 4 (Production Motif): Plot 
 
 def calcProdRate(A,B,kcatA,Km):
     return kcatA/2*(A+B+Km-np.sqrt((A+B+Km)**2-4*A*B))
@@ -609,27 +600,23 @@ plt.show()
 
 
 
-#%% Figure 4 (Full Pathways): Pull Data 
+#%% Figure 5 (Full Pathways): Pull Data 
 
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/graphics')
-TCSpathway = img.imread('ngigraphic16.png')
-diffTFpathway = img.imread('ngigraphic61.png')
-cdGpathway = img.imread('ngigraphic17.png')
+TCSpathway = img.imread(PROJECT_DIR / 'graphics/ngigraphic16.png')
+diffTFpathway = img.imread(PROJECT_DIR / 'graphics/ngigraphic61.png')
+cdGpathway = img.imread(PROJECT_DIR / 'graphics/ngigraphic17.png')
 
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/diffTF')
-with open('motifs_diffTF3.pickle','rb') as f:
+with open(PROJECT_DIR / 'diffTF/motifs_diffTF3.pickle','rb') as f:
     normvar_diffTF = pickle.load(f)
 
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/cdg')
-with open('cdg_time.pickle','rb') as f:
+with open(PROJECT_DIR / 'cdg/cdg_time.pickle','rb') as f:
     normvar_cdg = pickle.load(f)
 
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/tcs')
-with open('motifs_tcs3.pickle','rb') as f:
+with open(PROJECT_DIR / 'tcs/motifs_tcs3.pickle','rb') as f:
     normvar_tcs = pickle.load(f)
 
 
-#%% Figure 4 (Full Pathways): Plot 
+#%% Figure 5 (Full Pathways): Plot 
 
 times = np.linspace(0,10,1001)
 
@@ -723,41 +710,35 @@ plt.subplots_adjust(top = 1, bottom = 0.07, right = .99, left = 0.08)
 plt.show()
 
 
-#%% Figure 5 (Spatial Simulations): Pull Data
+#%% Figure 6 (Spatial Simulations): Pull Data
 
-lineage_simulation_graphic = img.imread('//prfs.hhmi.org/sgrolab/mark/comp_proj/graphics/ngigraphic90.png')
+lineage_simulation_graphic = img.imread(PROJECT_DIR / 'graphics/ngigraphic90.png')
 
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/graphics')
-pathway = img.imread('ngigraphic47.png')
-A = img.imread('A_whiteborder.png')
-B = img.imread('B_whiteborder.png')
-C = img.imread('C_whiteborder.png')
-satpathway = img.imread('ngigraphic62.png')
+pathway = img.imread(PROJECT_DIR / 'graphics/ngigraphic47.png')
+A = img.imread(PROJECT_DIR / 'graphics/A_whiteborder.png')
+B = img.imread(PROJECT_DIR / 'graphics/B_whiteborder.png')
+C = img.imread(PROJECT_DIR / 'graphics/C_whiteborder.png')
+satpathway = img.imread(PROJECT_DIR / 'graphics/ngigraphic62.png')
 
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/gridcells/mac_cascade')
-with open('cascade_10gen2_relatedness.pickle','rb') as f:
+with open(PROJECT_DIR / 'gridcells/mac_cascade/cascade_10gen2_relatedness.pickle','rb') as f:
     relatedness = pickle.load(f)
-with open('cascade_10gen2_cousinmaps.pickle','rb') as f:
+with open(PROJECT_DIR / 'gridcells/mac_cascade/cascade_10gen2_cousinmaps.pickle','rb') as f:
     imgs = pickle.load(f)
 
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/cascade')
-with open('cascade_time_normdvar.pickle','rb') as f:
+with open(PROJECT_DIR / 'cascade/cascade_time_normdvar.pickle','rb') as f:
     normvar = pickle.load(f)
 times = np.linspace(0,10,1001)
 
-
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/gridcells/mac_cascade')
 ts = [2000,4000,6000,8000,10000]
 molTimes = [4000,6000,8000,10000]
-with open('cascade_10gen2_molConcMaps.pickle','rb') as f:
+with open(PROJECT_DIR / 'gridcells/mac_cascade/cascade_10gen2_molConcMaps.pickle','rb') as f:
     molAImgs,molBImgs,molCImgs = pickle.load(f)
-
-with open('cascade_10gen_moranIs2.pickle','rb') as f:
+with open(PROJECT_DIR / 'gridcells/mac_cascade/cascade_10gen_moranIs2.pickle','rb') as f:
     morIs_discdist = pickle.load(f)
 
 
 
-#%% Figure 5 (spatial): plot 
+#%% Figure 6 (spatial): plot 
 
 def expDecay(x,tau,x0):
     return x0*np.exp(-x/tau)
@@ -869,8 +850,7 @@ plt.show()
 
 #%% Figure S1 (Framework): Pull Data 
 
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/graphics')
-framework = img.imread('ngigraphic32.png')
+framework = img.imread(PROJECT_DIR / 'graphics/ngigraphic32.png')
 
 #%% Figure S1 (Framework): Plot
 
@@ -895,11 +875,11 @@ motherBs = np.zeros_like(motherAs)
 drnds = np.zeros([len(PprodAs),1000,6])
 dsiss = np.zeros_like(drnds)
 
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/satprod/n1000')
-for file in os.listdir():
+for file in os.listdir(PROJECT_DIR / 'satprod/n1000'):
     index = int(file.split('_')[2].split('.')[0])
 
-    with open(file,'rb') as f:
+    filepath = os.path.join(PROJECT_DIR / 'satprod/n1000', file)
+    with open(filepath,'rb') as f:
         PprodA,Tcc,kcatA,motherA,motherB,drnd,dsis = pickle.load(f)
     
     motherAs[index] = motherA
@@ -1038,11 +1018,11 @@ motherBs = np.zeros_like(motherAs)
 drnds = np.zeros([len(PprodAs),1000,6])
 dsiss = np.zeros_like(drnds)
 
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/satprod/n1000')
-for file in os.listdir():
+for file in os.listdir(PROJECT_DIR / 'satprod/n1000'):
     index = int(file.split('_')[2].split('.')[0])
 
-    with open(file,'rb') as f:
+    filepath = os.path.join(PROJECT_DIR / 'satprod/n1000', file)
+    with open(filepath,'rb') as f:
         PprodA,Tcc,kcatA,motherA,motherB,drnd,dsis = pickle.load(f)
     
     motherAs[index] = motherA
@@ -1107,11 +1087,10 @@ def normdvar(kT):
     return 20/9*kT/(3+20/9*kT)
 
 os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/graphics')
-satprod = img.imread('ngigraphic56.png')
-prod_fixedB = img.imread('ngigraphic70.png')
+satprod = img.imread(PROJECT_DIR / 'graphics/ngigraphic56.png')
+prod_fixedB = img.imread(PROJECT_DIR / 'graphics/ngigraphic70.png')
 
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/analyticalData')
-with open('motifs_prodsat_sweepdata_reduced.pickle','rb') as f:
+with open(PROJECT_DIR / 'analyticalData/motifs_prodsat_sweepdata_reduced.pickle','rb') as f:
     Tccs,Tccvar_dsis,Tccvar_drnd,kcats,kcatvar_dsis,kcatvar_drnd = pickle.load(f)
 kcatMrange = np.logspace(-4,0,61)
 Tccrange = np.logspace(2,4,11)
@@ -1122,11 +1101,11 @@ kTrange = np.logspace(-2,7,41)
 
 kcatA2_kcats = np.zeros(13)
 kcatA2_normvarBs = np.zeros(13)
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/prodsat_sweep/prodsat_kcatsweep')
-for file in os.listdir():
+for file in os.listdir(PROJECT_DIR / 'prodsat_sweep/prodsat_kcatsweep'):
     kcatAindex = int(file.split('_')[3].split('.')[0])
     
-    with open(file,'rb') as f:
+    filepath = os.path.join(PROJECT_DIR / 'prodsat_sweep/prodsat_kcatsweep', file)
+    with open(filepath,'rb') as f:
         kcatA,normvarA,normvarB = pickle.load(f)
     
     kcatA2_kcats[kcatAindex] = kcatA
@@ -1134,11 +1113,11 @@ for file in os.listdir():
 
 Tccs2_Tcc = np.zeros(5)
 Tccs2_normvarBs = np.zeros(5)
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/prodsat_sweep/prodsat_Tccsweep')
-for file in os.listdir():
+for file in os.listdir(PROJECT_DIR / 'prodsat_sweep/prodsat_Tccsweep'):
     Tccindex = int(file.split('_')[3].split('.')[0])
     
-    with open(file,'rb') as f:
+    filepath = os.path.join(PROJECT_DIR / 'prodsat_sweep/prodsat_Tccsweep', file)
+    with open(filepath,'rb') as f:
         Tcc_val,normvarA,normvarB = pickle.load(f)
     
     Tccs2_Tcc[Tccindex] = Tcc_val
@@ -1192,8 +1171,7 @@ plt.show()
 def normdvar(kT):
     return 20/9*kT/(3+20/9*kT)
 
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/analyticalData')
-with open('motifs_prodsat_sweepdata_reduced.pickle','rb') as f:
+with open(PROJECT_DIR / 'analyticalData/motifs_prodsat_sweepdata_reduced.pickle','rb') as f:
     Tccs,Tccvar_dsis,Tccvar_drnd,kcats,kcatvar_dsis,kcatvar_drnd = pickle.load(f)
 kcatMrange = np.logspace(-4,0,61)
 Tccrange = np.logspace(2,4,11)
@@ -1213,13 +1191,13 @@ for i in range(len(model)):
     for j in range(len(model[i])):
             model[i,j] = normdvar(kcatAs[i]*Tccs[j])
 
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/prodsat_sweep/sweep1')
-for file in os.listdir():
+for file in os.listdir(PROJECT_DIR / 'prodsat_sweep/sweep1'):
     
     prodAindex = int(file.split('_')[4])
     kcatAindex = int(file.split('_')[6].split('.')[0])
     
-    with open(file,'rb') as f:
+    filepath = os.path.join(PROJECT_DIR / 'prodsat_sweep/sweep1', file)
+    with open(filepath,'rb') as f:
         prodA,kcatA,Tccs,divStates,dsis,drnd = pickle.load(f)
 
     normvarBs[prodAindex,kcatAindex] = 1-np.var(dsis[:,:,1],axis=1)/np.var(drnd[:,:,1],axis=1)
@@ -1271,11 +1249,9 @@ plt.show()
 
 #%% Figure S6 (Production Motif Fixed Reactant - kcatA and PprodA sweep): Pull Data
 
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/graphics')
-prod_fixedB = img.imread('ngigraphic70.png')
+prod_fixedB = img.imread(PROJECT_DIR / 'graphics/ngigraphic70.png')
 
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/fixed_reactant')
-with open('fixedReactant4.pickle','rb') as f:
+with open(PROJECT_DIR / 'fixed_reactant/fixedReactant4.pickle','rb') as f:
     means_pA,variances_pA,vardSis_pA,vardRnd_pA,normvars_pA = pickle.load(f)
 
 Tcc = 1000
@@ -1287,7 +1263,7 @@ prodColors2 = np.transpose(np.array((np.linspace(prodColorRange[0][0],prodColorR
                                     np.linspace(prodColorRange[0][1],prodColorRange[1][1],3),
                                     np.linspace(prodColorRange[0][2],prodColorRange[1][2],3))))
 
-with open('fixedReactant5.pickle','rb') as f:
+with open(PROJECT_DIR / 'fixed_reactant/fixedReactant5.pickle','rb') as f:
     means_kA,variances_kA,vardSis_kA,vardRnd_kA,normvars_kA = pickle.load(f)
 
 kcatAs = np.logspace(-2,2,5)
@@ -1375,17 +1351,14 @@ plt.show()
 
 #%% Figure S7 (Irreversible and Reversible Binding): Pull Data
 
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/graphics')
-irreversible = img.imread('ngigraphic53.png')
-reversible = img.imread('ngigraphic67.png')
-a_slider = img.imread('a_slider.png')
+irreversible = img.imread(PROJECT_DIR / 'graphics/ngigraphic53.png')
+reversible = img.imread(PROJECT_DIR / 'graphics/ngigraphic67.png')
+a_slider = img.imread(PROJECT_DIR / 'graphics/a_slider.png')
 
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/prodRateSat')
-with open('bind3.pickle','rb') as f:
+with open(PROJECT_DIR / 'prodRateSat/bind3.pickle','rb') as f:
     prodAs,prodBs,Aeqs,Beqs,Ceqs,varAs,varBs,varCs = pickle.load(f)
 
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/binding_rev')
-with open('revbind4.pickle','rb') as f:
+with open(PROJECT_DIR / 'binding_rev/revbind4.pickle','rb') as f:
     prodAs_rev,prodBs_rev,Aeqs_rev,Beqs_rev,Ceqs_rev,varAs_rev,varBs_rev,varCs_rev,normvarAs_rev,normvarBs_rev,normvarCs_rev = pickle.load(f)
 
 prodColorRange = [enzymeColor,[68/255,10/255,21/255]]
@@ -1577,11 +1550,9 @@ plt.show()
 
 #%% Figure S8 (Monofunctional Phosphorylation Motif): pull data 
 
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/graphics')
-phosphorylation = img.imread('ngigraphic58.png')
+phosphorylation = img.imread(PROJECT_DIR / 'graphics/ngigraphic58.png')
 
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/prodRateSat')
-with open('phos_int3.pickle','rb') as f:
+with open(PROJECT_DIR / 'prodRateSat/phos_int3.pickle','rb') as f:
     prodAs,prodBs,Aeqs,Beqs,Ceqs,Deqs,Eeqs,varAs,varBs,varCs,varDs,varEs = pickle.load(f)
 
 
@@ -1764,11 +1735,9 @@ plt.show()
 
 #%% Figure S9 (Bifunctional TCS): Pull Data 
 
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/graphics')
-pathway = img.imread('ngigraphic60.png')
+pathway = img.imread(PROJECT_DIR / 'graphics/ngigraphic60.png')
 
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/prodRateSat')
-with open('phos2_0.pickle','rb') as f:
+with open(PROJECT_DIR / 'prodRateSat/phos2_0.pickle','rb') as f:
     prodAs,prodBs,Aeqs,Beqs,Ceqs,Eeqs,Deqs,Feqs,varAs,varBs,varCs,varDs,varEs,varFs = pickle.load(f)
 
 #%% Figure S9 (Bifunctional TCS): Plot
@@ -1826,36 +1795,36 @@ plt.show()
 
 #%% Figure S10 (Duration sweep): Pull Data
 
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/graphics')
-circuit = img.imread('ngigraphic50.png')
+circuit = img.imread(PROJECT_DIR / 'graphics/ngigraphic50.png')
 
 times = np.linspace(0,10,1001)
 Tccs = [500,1000,2000,5000,10000]
 
 normvars_PprodAsweep = np.zeros([4,6,1001])
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/satprod/time_PprodAsweep')
-for file in os.listdir():  
+for file in os.listdir(PROJECT_DIR / 'satprod/time_PprodAsweep'):  
     index = int(file.split('_')[3].split('.')[0])
-    with open(file,'rb') as f:
+
+    filepath = os.path.join(PROJECT_DIR / 'satprod/time_PprodAsweep', file)
+    with open(filepath,'rb') as f:
         normvar = pickle.load(f)
     normvars_PprodAsweep[index] = normvar
 
 normvars_kcatAsweep = np.zeros([4,6,1001])
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/satprod/time_kcatAsweep')
-for file in os.listdir():  
+for file in os.listdir(PROJECT_DIR / 'satprod/time_kcatAsweep'):  
     index = int(file.split('_')[3].split('.')[0])
-    with open(file,'rb') as f:
+
+    filepath = os.path.join(PROJECT_DIR / 'satprod/time_kcatAsweep', file)
+    with open(filepath,'rb') as f:
         normvar = pickle.load(f)
     normvars_kcatAsweep[index] = normvar
 
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/satprod/time_Tccsweep')
-with open('satprod_time_Tccsweep_0.pickle','rb') as f:
+with open(PROJECT_DIR / 'satprod/time_Tccsweep/satprod_time_Tccsweep_0.pickle','rb') as f:
     normvar_Tccweep_0 = pickle.load(f)
-with open('satprod_time_Tccsweep_1.pickle','rb') as f:
+with open(PROJECT_DIR / 'satprod/time_Tccsweep/satprod_time_Tccsweep_1.pickle','rb') as f:
     normvar_Tccweep_1 = pickle.load(f)
-with open('satprod_time_Tccsweep_2.pickle','rb') as f:
+with open(PROJECT_DIR / 'satprod/time_Tccsweep/satprod_time_Tccsweep_2.pickle','rb') as f:
     normvar_Tccweep_2 = pickle.load(f)
-with open('satprod_time_Tccsweep_3.pickle','rb') as f:
+with open(PROJECT_DIR / 'satprod/time_Tccsweep/satprod_time_Tccsweep_3.pickle','rb') as f:
     normvar_Tccweep_3 = pickle.load(f)
 
 #%% Figure S10 (Duration sweep): Plot 
@@ -2063,16 +2032,15 @@ plt.show()
 
 #%% Figure S11 (Full Rkcat sweep): Analyze 
 
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/graphics')
-proddeg = img.imread('ngigraphic51.png')
+proddeg = img.imread(PROJECT_DIR / 'graphics/ngigraphic51.png')
 
 normvars = np.zeros([20,6,1001])
 Rkcats = np.zeros(20)
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/prodanddeg/Rkcatsweep2')
-for file in os.listdir():
+for file in os.listdir(PROJECT_DIR / 'prodanddeg/Rkcatsweep2'):
     index = int(file.split('_')[1].split('.')[0])
     
-    with open(file,'rb') as f:
+    filepath = os.path.join(PROJECT_DIR / 'prodanddeg/Rkcatsweep2', file)
+    with open(filepath,'rb') as f:
         kcatA,kcatB,normvar = pickle.load(f)
     
     normvars[index] = normvar
@@ -2188,11 +2156,9 @@ plt.show()
 
 #%% Figure S12 (5 Step Cascade): pull
 
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/graphics')
-cascade = img.imread('ngigraphic75.png')
+cascade = img.imread(PROJECT_DIR / 'graphics/ngigraphic75.png')
 
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/cascade')
-with open('cascade5_time.pickle','rb') as f:
+with open(PROJECT_DIR / 'cascade/cascade5_time.pickle','rb') as f:
     means,variances,normvar = pickle.load(f)
 times = np.linspace(0,20,2001)
 
@@ -2236,8 +2202,7 @@ plt.show()
 
 #%% Figure S13 (Spatial Simulation graphic): Pull 
 
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/graphics')
-spacealgo = img.imread('ngigraphic26.png')
+spacealgo = img.imread(PROJECT_DIR / 'graphics/ngigraphic26.png')
 
 #%% Figure S13 (Spatial Simulation graphic): plot 
 
@@ -2248,8 +2213,7 @@ ax.axis('off')
 
 #%% Figure S14 (cousin maps different reference cells): pull
 
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/gridcells/mac_cascade')
-with open('cascade_10gen2_cousinmaps_all.pickle','rb') as f:
+with open(PROJECT_DIR / 'gridcells/mac_cascade/cascade_10gen2_cousinmaps_all.pickle','rb') as f:
    imgs = pickle.load(f)
 cousinNums = [100,200,300,400,500]
 ts = [0,2000,4000,6000,8000,10000]
@@ -2280,12 +2244,11 @@ coef_cbar.outline.set_color('white')
 
 #%% Figure S15 (relatedness curves different grids): pull
 
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/gridcells/randomseeds')
-with open('grid_1000_relatedness.pickle','rb') as f:
+with open(PROJECT_DIR / 'gridcells/randomseeds/grid_1000_relatedness.pickle','rb') as f:
     relatedness_1000 = pickle.load(f)
-with open('grid_1001_relatedness.pickle','rb') as f:
+with open(PROJECT_DIR / 'gridcells/randomseeds/grid_1001_relatedness.pickle','rb') as f:
     relatedness_1001 = pickle.load(f)
-with open('grid_1002_relatedness.pickle','rb') as f:
+with open(PROJECT_DIR / 'gridcells/randomseeds/grid_1002_relatedness.pickle','rb') as f:
     relatedness_1002 = pickle.load(f)
 
 #%% Figure S15 (relatedness curves different grids): plot
@@ -2314,15 +2277,13 @@ plt.show()
 
 #%% Figure S16 (Moran's I weight matrices): pull
 
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/graphics')
-weightdefs = img.imread('ngigraphic27.png')
+weightdefs = img.imread(PROJECT_DIR / 'graphics/ngigraphic27.png')
 
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/gridcells/mac_cascade/cascade_10gen2_moranIs')
 morIs_discdist = np.zeros([9,5,101])
 filenames = []
-for file in os.listdir():
+for file in os.listdir(PROJECT_DIR / 'gridcells/mac_cascade/cascade_10gen2_moranIs'):
     if 'cascade_10gen2_morIs_discdist_r' in file:
-        filenames.append(file)
+        filenames.append(os.path.join(PROJECT_DIR / 'gridcells/mac_cascade/cascade_10gen2_moranIs', file))
 
 for i in range(1,len(filenames)):
     with open(filenames[i],'rb') as f:
@@ -2330,9 +2291,9 @@ for i in range(1,len(filenames)):
 
 morIs_donut = np.zeros([9,5,101])
 filenames = []
-for file in os.listdir():
+for file in os.listdir(PROJECT_DIR / 'gridcells/mac_cascade/cascade_10gen2_moranIs'):
     if 'cascade_10gen2_morIs_donut_r' in file:
-        filenames.append(file)
+        filenames.append(os.path.join(PROJECT_DIR / 'gridcells/mac_cascade/cascade_10gen2_moranIs', file))
 
 for i in range(1,len(filenames)):
     with open(filenames[i],'rb') as f:
@@ -2340,9 +2301,9 @@ for i in range(1,len(filenames)):
         
 morIs_gausdisc = np.zeros([9,5,101])
 filenames = []
-for file in os.listdir():
+for file in os.listdir(PROJECT_DIR / 'gridcells/mac_cascade/cascade_10gen2_moranIs'):
     if 'cascade_10gen2_morIs_gausdist_r' in file:
-        filenames.append(file)
+        filenames.append(os.path.join(PROJECT_DIR / 'gridcells/mac_cascade/cascade_10gen2_moranIs', file))
 
 for i in range(1,len(filenames)):
     with open(filenames[i],'rb') as f:
@@ -2501,8 +2462,7 @@ plt.show()
 
 #%% Figure S17 (Seed Cell Schematic): Pull Data 
 
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/graphics')
-seedcells = img.imread('ngigraphic46.png')
+seedcells = img.imread(PROJECT_DIR / 'graphics/ngigraphic46.png')
 
 #%% Figure S17 (Seed Cell Schematic): Plot 
 
@@ -2513,7 +2473,7 @@ ax.axis('off')
 
 #%% Figure S18 (Toy Model Brekaout): pull data
 
-pathway = img.imread('//prfs.hhmi.org/sgrolab/mark/comp_proj/graphics/ngigraphic89.png')
+pathway = img.imread(PROJECT_DIR / 'graphics/ngigraphic89.png')
 
 #%% Figure S18 (Toy Model Brekaout): Plot
 
@@ -2525,11 +2485,10 @@ ax.axis('off')
 #%% Figure S19 (Phosphorylation Monocycles): pull data 
 
 os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/graphics')
-pathway = img.imread('ngigraphic69.png')
-a_slider = img.imread('a_slider.png')
+pathway = img.imread(PROJECT_DIR / 'graphics/ngigraphic69.png')
+a_slider = img.imread(PROJECT_DIR / 'graphics/a_slider.png')
 
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/phos_cycle')
-with open('phoscycle2.pickle','rb') as f:
+with open(PROJECT_DIR / 'phos_cycle/phoscycle2.pickle','rb') as f:
     prodAs_MA,prodBs_MA,Aeqs_MA,Beqs_MA,Ceqs_MA,Deqs_MA,varAs_MA,varBs_MA,varCs_MA,varDs_MA,normvarAs_MA,normvarBs_MA,normvarCs_MA,normvarDs_MA = pickle.load(f)
 
 prodColorRange = [enzymeColor,[68/255,10/255,21/255]]
@@ -2539,8 +2498,7 @@ prodColors = np.transpose(np.array((np.linspace(prodColorRange[0][0],prodColorRa
                                     np.linspace(1,1,len(prodAs_MA)))))
 prodColorMap = ListedColormap(prodColors)
 
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/satphos')
-with open('satphos3.pickle','rb') as f:
+with open(PROJECT_DIR/'satphos/satphos3.pickle','rb') as f:
     prodBs_MM,kms_MM,Aeqs_MM,Beqs_MM,Ceqs_MM,Deqs_MM,varAs_MM,varBs_MM,varCs_MM,varDs_MM = pickle.load(f)
 
 #%% Figure S19 (Phosphorylation Monocycles): plot 
@@ -2620,11 +2578,9 @@ plt.show()
 
 #%% Figure S20 (Correlation Coefficient): Pull Data
 
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/graphics')
-prodonly = img.imread('ngigraphic50.png')
+prodonly = img.imread(PROJECT_DIR / 'graphics/ngigraphic50.png')
 
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/correlationcoef')
-with open('samplerun.pickle','rb') as f:
+with open(PROJECT_DIR/'correlationcoef/samplerun.pickle','rb') as f:
    dM_rnd,dM_sis,dA_rnd,dA_sis,rM_sis,rM_rnd,rA_sis,rA_rnd = pickle.load(f)
 
 times = np.linspace(0,10,10000)
@@ -2770,11 +2726,9 @@ plt.show()
 def calcProdRate(A,B,kcatA,Km):
     return kcatA/2*(A+B+Km-np.sqrt((A+B+Km)**2-4*A*B))
 
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/graphics')
-prod = img.imread('ngigraphic68.png')
+prod = img.imread(PROJECT_DIR / 'graphics/ngigraphic68.png')
 
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/orderAnalysis')
-with open('calcOrder4.pickle','rb') as f:
+with open(PROJECT_DIR / 'orderAnalysis/calcOrder4.pickle','rb') as f:
    substrateMean,substrateVar,substrateLow,substrateHigh,substrateDrnd,substrateDsis,substrateSim,enzymeMean,enzymeVar,enzymeDrnd,enzymeDsis,enzymeSim,productMean,productVar,productDrnd,productDsis,productSim,orderMean,orderStd = pickle.load(f)
 
 # nCells = 1000
