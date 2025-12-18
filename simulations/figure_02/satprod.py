@@ -1,9 +1,9 @@
 # Binding motif initial values 
-
-import os, pickle, numpy as np 
-os.chdir('/groups/sgro/sgrolab/mark/comp_proj/motifs')
-# os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/motifs')
-import motiffunc as mf
+import pickle
+import sys
+import numpy as np 
+from utils import motiffunc as mf
+from utils.config import PROJECT_DIR
 
 Tcc = 1000
 nCells = 1000

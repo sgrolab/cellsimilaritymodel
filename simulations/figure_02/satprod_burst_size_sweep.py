@@ -1,10 +1,8 @@
-# Binding motif initial values 
-
-import os, pickle, numpy as np 
-os.chdir('/groups/sgro/sgrolab/mark/comp_proj/motifs')
-# os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/motifs')
-import motiffunc as mf
-
+# Burst Size Sweep 
+import pickle
+import numpy as np 
+from utils import motiffunc as mf
+from utils.config import PROJECT_DIR
 
 Tcc = 1000
 nCells = 1000
@@ -45,8 +43,5 @@ for i in range(len(burstSizes)):
     normvarAs[i] = 1-np.var(dsis[:,0],axis=0)/np.var(drnd[:,0],axis=0)
     normvarBs[i] = 1-np.var(dsis[:,1],axis=0)/np.var(drnd[:,1],axis=0)
 
-
-os.chdir('/groups/sgro/sgrolab/mark/comp_proj/burstSize')
-# os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/burstSize')
-with open('burstSize_prodA-0.pickle','wb') as f:
+with open(PROJECT_DIR / 'burstSize/burstSize_prodA-0.pickle','wb') as f:
     pickle.dump([burstSizes,prodAs,Aeqs,Beqs,normvarAs,normvarBs],f,pickle.HIGHEST_PROTOCOL)
