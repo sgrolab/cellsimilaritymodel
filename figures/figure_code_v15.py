@@ -8,7 +8,8 @@ from matplotlib import patches as mpatches
 from matplotlib.colors import ListedColormap
 from scipy.optimize import curve_fit
 from scipy import stats
-from pathlib import Path 
+
+from utils.config import PROJECT_DIR 
 
 letterLabelSize=42
 axisFontSize=20
@@ -38,7 +39,6 @@ def returnLogMinorTicks(start,stop):
         tickvals = np.concatenate((tickvals,np.linspace(10**i,10**(i+1),10)))
     return tickvals
 
-PROJECT_DIR = Path("//prfs.hhmi.org/sgrolab/mark/comp_proj/")
 
 #%% Figure 1 Concept: pull data 
 
