@@ -1,15 +1,15 @@
-# Binding motif initial values 
+# Saturated Production: Sweep Tcc 
+import pickle
+import numpy as np 
+from utils import motiffunc as mf
+from utils.config import PROJECT_DIR
 
-import os, pickle, numpy as np 
-os.chdir('/groups/sgro/sgrolab/mark/comp_proj/motifs')
-# os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/motifs')
-import motiffunc as mf
-
-Tcc = 1000
 nCells = 1000
 rng = np.random.default_rng(seed=1000)
 
 Tccs = np.logspace(2,4,5)
+kcatA = 10**-2
+PprodA = 10**-2
 
 motherCells = []
 divStates = np.zeros([len(Tccs),5,nCells])
@@ -17,7 +17,7 @@ divStates = np.zeros([len(Tccs),5,nCells])
 for i in range(len(Tccs)):
 
     motherCell = mf.Cell(Tccs[i],0)
-    motherCell.parameterize('prodsat',[0.01,0.01])
+    motherCell.parameterize('prodsat',[PprodA,kcatA])
     motherCell.run(nCells)
     
     motherCells.append(motherCell)
@@ -35,7 +35,5 @@ for j in range(len(Tccs)):
         dsis[j,i] = divStates[j,:,i] - 2*cell1
         drnd[j,i] = cell1 - cell2
 
-os.chdir('/groups/sgro/sgrolab/mark/comp_proj/analyticalData')
-# os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/subsaturation')
-with open('motifs_prodsat_Tccsweep.pickle','wb') as f:
+with open(PROJECT_DIR / 'analyticalData/motifs_prodsat_Tccsweep.pickle','wb') as f:
     pickle.dump([Tccs,motherCells,dsis,drnd],f,pickle.HIGHEST_PROTOCOL)

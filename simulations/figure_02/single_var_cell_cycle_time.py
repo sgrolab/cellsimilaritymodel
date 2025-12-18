@@ -1,22 +1,24 @@
 # Binding motif initial values 
+import pickle
+import sys
+import numpy as np 
+from utils import motiffunc as mf
+from utils.config import PROJECT_DIR
 
-import os, pickle, numpy as np 
-os.chdir('/groups/sgro/sgrolab/mark/comp_proj/motifs')
-import motiffunc as mf
-# os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/motifs')
 
-
-Tcc = 1000
 nCells = 1000
 rng = np.random.default_rng(seed=1000)
 
+Tcc = 1000
 varTccs = np.logspace(0,3,11)
+PprodA = 10**-1
+
 divStates = np.zeros([len(varTccs),5,nCells])
 
 for i in range(len(varTccs)):
 
     motherCell = mf.Cell(Tcc,varTccs[i])
-    motherCell.parameterize('single',[.1])
+    motherCell.parameterize('single',[PprodA])
     motherCell.run(nCells)
     
     divStates[i] = motherCell.getMotherStates()
@@ -32,6 +34,5 @@ for j in range(len(varTccs)):
         dsis[j,i] = divStates[j,:,i] - 2*cell1
         drnd[j,i] = cell1 - cell2
 
-os.chdir('/groups/sgro/sgrolab/mark/comp_proj/varTcc')
-with open('varTcc_diffs.pickle','wb') as f:
+with open(PROJECT_DIR / 'varTcc/varTcc_diffs.pickle','wb') as f:
     pickle.dump([dsis,drnd],f,pickle.HIGHEST_PROTOCOL)

@@ -1,6 +1,5 @@
 # Binding motif initial values 
 import pickle
-import sys
 import numpy as np 
 from utils import motiffunc as mf
 from utils.config import PROJECT_DIR
@@ -35,6 +34,5 @@ for j in range(len(prodAs)):
         dsis[j,i] = divStates[j,:,i] - 2*cell1
         drnd[j,i] = cell1 - cell2
 
-os.chdir('/groups/sgro/sgrolab/mark/comp_proj/analyticalData')
-with open('motifs_prodsat.pickle','wb') as f:
+with open(PROJECT_DIR / 'analyticalData/motifs_prodsat.pickle','wb') as f:
     pickle.dump([prodAs,motherCells,dsis,drnd],f,pickle.HIGHEST_PROTOCOL)
