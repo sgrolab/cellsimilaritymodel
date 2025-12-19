@@ -21,7 +21,7 @@ class Cell:
         self.k7 = 0
         self.k8 = 0
         self.burstSize = 1
-        self.arrSize = int(1e9)
+        self.arrSize = int(1e6)
         self.t = np.array([0])
         self.V = np.array([1])
         self.A = np.array([0])
@@ -509,7 +509,7 @@ class Cell:
         startIndex = cycleIndex*int(self.Tcc/10)
         endIndex = (cycleIndex+1)*int(self.Tcc/10)+1
         
-        print('start index: %i, end index: %i' % (startIndex,endIndex))
+        # print('start index: %i, end index: %i' % (startIndex,endIndex))
         
         self.molecules[:,startIndex:endIndex] = molecules
         
@@ -1202,11 +1202,11 @@ class Cell:
         
         return motherStates
 
-    # def getIntegerTimes(self):
-        # times = np.linspace(0,self.divTimes[-2],int(self.divTimes[-2]/10)+1)
-        # t_repeat = np.repeat(self.t[:,np.newaxis],len(times),axis=1)
+    def getIntegerTimes(self):
+        times = np.linspace(0,self.divTimes[-2],int(self.divTimes[-2]/10)+1)
+        t_repeat = np.repeat(self.t[:,np.newaxis],len(times),axis=1)
         
-        # return np.argmin(abs(np.subtract(t_repeat,times)),axis=0)
+        return np.argmin(abs(np.subtract(t_repeat,times)),axis=0)
         
     def getMolecules(self):
         indices = self.getIntegerTimes()

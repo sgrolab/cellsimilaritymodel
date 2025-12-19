@@ -1,0 +1,37 @@
+import os
+import pickle
+import numpy as np
+from utils.config import PROJECT_DIR
+
+prodBs = np.zeros([25,31])
+kms = np.zeros_like(prodBs)
+Aeqs = np.zeros_like(prodBs)
+Beqs = np.zeros_like(prodBs)
+Ceqs = np.zeros_like(prodBs)
+Deqs = np.zeros_like(prodBs)
+varAs = np.zeros_like(prodBs)
+varBs = np.zeros_like(prodBs)
+varCs = np.zeros_like(prodBs)
+varDs = np.zeros_like(prodBs)
+
+for file in os.listdir(PROJECT_DIR / 'prodRateSat/phos_sat3'):
+    print('processing file %s' % file)
+    prodBindex = int(file.split('_')[2])
+    kmindex = int(file.split('_')[4].split('.')[0])
+
+    with open(PROJECT_DIR / 'prodRateSat/phos_sat3' / file,'rb') as f:
+       params,Eqs,normvars = pickle.load(f)
+
+    prodBs[kmindex,prodBindex] = params[3]
+    kms[kmindex,prodBindex] = params[2]
+    Aeqs[kmindex,prodBindex] = Eqs[0]
+    Beqs[kmindex,prodBindex] = Eqs[1]
+    Ceqs[kmindex,prodBindex] = Eqs[2]
+    Deqs[kmindex,prodBindex] = Eqs[3]
+    varAs[kmindex,prodBindex] = normvars[0]
+    varBs[kmindex,prodBindex] = normvars[1]
+    varCs[kmindex,prodBindex] = normvars[2]
+    varDs[kmindex,prodBindex] = normvars[3]
+
+with open(PROJECT_DIR / 'satphos/satphos3.pickle','wb') as f:
+    pickle.dump([prodBs,kms,Aeqs,Beqs,Ceqs,Deqs,varAs,varBs,varCs,varDs],f,pickle.HIGHEST_PROTOCOL)

@@ -2475,101 +2475,7 @@ ax = f.add_subplot([0,0,1,1])
 ax.imshow(pathway)
 ax.axis('off')
 
-#%% Figure S19 (Phosphorylation Monocycles): pull data 
-
-os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/graphics')
-pathway = img.imread(PROJECT_DIR / 'graphics/ngigraphic69.png')
-a_slider = img.imread(PROJECT_DIR / 'graphics/a_slider.png')
-
-with open(PROJECT_DIR / 'phos_cycle/phoscycle2.pickle','rb') as f:
-    prodAs_MA,prodBs_MA,Aeqs_MA,Beqs_MA,Ceqs_MA,Deqs_MA,varAs_MA,varBs_MA,varCs_MA,varDs_MA,normvarAs_MA,normvarBs_MA,normvarCs_MA,normvarDs_MA = pickle.load(f)
-
-prodColorRange = [enzymeColor,[68/255,10/255,21/255]]
-prodColors = np.transpose(np.array((np.linspace(prodColorRange[0][0],prodColorRange[1][0],len(prodAs_MA)),
-                                    np.linspace(prodColorRange[0][1],prodColorRange[1][1],len(prodAs_MA)),
-                                    np.linspace(prodColorRange[0][2],prodColorRange[1][2],len(prodAs_MA)),
-                                    np.linspace(1,1,len(prodAs_MA)))))
-prodColorMap = ListedColormap(prodColors)
-
-with open(PROJECT_DIR/'satphos/satphos3.pickle','rb') as f:
-    prodBs_MM,kms_MM,Aeqs_MM,Beqs_MM,Ceqs_MM,Deqs_MM,varAs_MM,varBs_MM,varCs_MM,varDs_MM = pickle.load(f)
-
-#%% Figure S19 (Phosphorylation Monocycles): plot 
-
-def logFit(x,xmax,Kx,n):
-    return xmax*x**n/(Kx**n+x**n)
-
-f = plt.figure(figsize=(16,5))
-gs = GridSpec(1,3,figure=f,wspace=0.5,hspace=0.6)
-
-f.text(0.001,0.91,'A',fontsize=letterLabelSize,fontname='roboto')
-ax = f.add_subplot([-0.01,.05,.3,.9])
-ax.imshow(pathway)
-ax.axis('off')
-
-f.text(0.27,0.91,'B',fontsize=letterLabelSize,fontname='roboto')
-ax = f.add_subplot(gs[0:1,1:2])
-ax.set_title('Mass-Action Kinetics',fontsize=axisFontSize)
-ax.hlines(0,10**-5,10**6,color='k',linestyle='dashed',linewidth=plotWidth)
-for i in range(len(prodAs_MA)):
-    ax.scatter(Beqs_MA[i]+Deqs_MA[i],normvarDs_MA[i],color=prodColorMap(i/len(prodAs_MA)))
-    params,cov = curve_fit(logFit,Beqs_MA[i]+Deqs_MA[i],normvarDs_MA[i],p0=[1,100,1])
-    ax.plot(np.logspace(-1,6,100),logFit(np.logspace(-1,6,100),params[0],params[1],params[2]),linestyle='dotted',color=prodColors[i])
-ax.set_xscale('log')
-ax.set_xlim([0.8*10**0,1.2*10**5])
-ax.set_ylim([-.2,1.05])
-ax.set_xlabel('Substrate Amount ($[B\']+[B]$)',fontsize=axisFontSize)
-ax.set_ylabel('Product\nLAS ($\Delta \hat{\sigma}^2_{\Delta [B]}$)',fontsize=axisFontSize,labelpad=-10)
-ax.set_yticks(np.linspace(-0.2,1,7))
-ax.set_yticks(np.linspace(-0.2,1,13),[],minor=1)
-ax.spines['left'].set_linewidth(tickWidth)
-ax.spines['bottom'].set_linewidth(tickWidth)
-ax.spines['right'].set_linewidth(0)
-ax.spines['top'].set_linewidth(0)
-ax.tick_params(axis='both',length=tickLength,width=tickWidth,labelsize=tickFontSize)
-ax.tick_params(axis='both',which='minor',length=tickLength/2,width=tickWidth/2,labelsize=tickFontSize)
-cax = f.add_subplot([0.6,0.35,.01,.4])
-coef_cbar = ax.figure.colorbar(plt.cm.ScalarMappable(norm=plt.Normalize(0,3), cmap=prodColorMap),cax=cax,ticks=[0,1,2,3])
-cax.yaxis.set_ticks_position('left')
-coef_cbar.set_label('[Enzyme]',fontsize=tickFontSize,rotation=-90,labelpad=17)
-coef_cbar.ax.tick_params(length=tickLength/2,width=tickWidth/2,labelsize=18)
-coef_cbar.outline.set_linewidth(2)
-coef_cbar.ax.set_yticklabels(['$10^{1}$','$10^2$','$10^3$','$10^4$'])
-
-f.text(0.65,0.91,'C',fontsize=letterLabelSize,fontname='roboto')
-ax = f.add_subplot(gs[0:1,2:3])
-ax.set_title('Enzyme Kinetics',fontsize=axisFontSize)
-ax.hlines(0,10**-5,10**6,color='k',linestyle='dashed',linewidth=plotWidth)
-for i in range(len(kms_MM)):
-    ax.scatter(Beqs_MM[i]+Deqs_MM[i],varDs_MM[i],color=plt.cm.bwr((np.log10(Aeqs_MM[i,0]/kms_MM[i,0])+2)/4))
-    params,cov = curve_fit(logFit,prodBs_MM[i,0:-3]*1000,varDs_MM[i,0:-3],p0=[1,1,1])
-    ax.plot(np.logspace(-1,6,100),logFit(np.logspace(-1,6,100),params[0],params[1],params[2]),linestyle='dotted',color=plt.cm.bwr((np.log10(Aeqs_MM[i,0]/kms_MM[i,0])+2)/4))
-ax.set_xscale('log')
-ax.set_xlim([8*10**0,4*10**5])
-ax.set_ylim([-.2,1.05])
-ax.set_xlabel('Substrate Amount ($[B\'] + [B]$)',fontsize=axisFontSize)
-ax.set_ylabel('Product\nLAS ($\Delta \hat{\sigma}^2_{\Delta [B]}$)',fontsize=axisFontSize,labelpad=-10)
-ax.set_yticks(np.linspace(-0.2,1,7))
-ax.set_yticks(np.linspace(-0.2,1,13),[],minor=1)
-ax.spines['left'].set_linewidth(tickWidth)
-ax.spines['bottom'].set_linewidth(tickWidth)
-ax.spines['right'].set_linewidth(0)
-ax.spines['top'].set_linewidth(0)
-ax.tick_params(axis='both',length=tickLength,width=tickWidth,labelsize=tickFontSize)
-ax.tick_params(axis='both',which='minor',length=tickLength/2,width=tickWidth/2,labelsize=tickFontSize)
-
-cbar_ax = f.add_axes([0.96,.35,.01,.4])
-coef_cbar = ax.figure.colorbar(plt.cm.ScalarMappable(norm=plt.Normalize(-2,2), cmap='bwr'),cax=cbar_ax,ticks=[-2,-1,0,1,2])
-cbar_ax.yaxis.set_ticks_position('left')
-coef_cbar.ax.set_yticklabels([-2,-1,0,1,2])
-coef_cbar.set_label('$log_{10}([A]_{eq}/K_M)$',fontsize=tickFontSize,rotation=-90,labelpad=20)
-coef_cbar.ax.tick_params(length=tickLength/2,width=tickWidth/2,labelsize=18)
-coef_cbar.outline.set_linewidth(2)
-
-plt.subplots_adjust(top = 0.93, bottom = 0.18, right = 0.99, left = -0.01)
-plt.show()
-
-#%% Figure S20 (Correlation Coefficient): Pull Data
+#%% Figure S19 (Correlation Coefficient): Pull Data
 
 prodonly = img.imread(PROJECT_DIR / 'graphics/ngigraphic50.png')
 
@@ -2578,7 +2484,7 @@ with open(PROJECT_DIR/'correlationcoef/samplerun.pickle','rb') as f:
 
 times = np.linspace(0,10,10000)
 
-#%% Figure S20 (Correlation Coefficient): Plot
+#%% Figure S19 (Correlation Coefficient): Plot
 
 f = plt.figure(figsize=(16,6))
 gs = GridSpec(2,4,figure=f,wspace=0.6,hspace=0.3)
@@ -2713,6 +2619,102 @@ ax.tick_params(axis='both',which='minor',length=tickLength/2,width=tickWidth/2,l
 
 plt.subplots_adjust(top = .98, bottom = 0.15, right = .99, left = -0.05)
 plt.show()
+
+#%% Figure S20 (Phosphorylation Monocycles): pull data 
+
+os.chdir('//prfs.hhmi.org/sgrolab/mark/comp_proj/graphics')
+pathway = img.imread(PROJECT_DIR / 'graphics/ngigraphic69.png')
+a_slider = img.imread(PROJECT_DIR / 'graphics/a_slider.png')
+
+with open(PROJECT_DIR / 'phos_cycle/phoscycle2.pickle','rb') as f:
+    prodAs_MA,prodBs_MA,Aeqs_MA,Beqs_MA,Ceqs_MA,Deqs_MA,varAs_MA,varBs_MA,varCs_MA,varDs_MA,normvarAs_MA,normvarBs_MA,normvarCs_MA,normvarDs_MA = pickle.load(f)
+
+prodColorRange = [enzymeColor,[68/255,10/255,21/255]]
+prodColors = np.transpose(np.array((np.linspace(prodColorRange[0][0],prodColorRange[1][0],len(prodAs_MA)),
+                                    np.linspace(prodColorRange[0][1],prodColorRange[1][1],len(prodAs_MA)),
+                                    np.linspace(prodColorRange[0][2],prodColorRange[1][2],len(prodAs_MA)),
+                                    np.linspace(1,1,len(prodAs_MA)))))
+prodColorMap = ListedColormap(prodColors)
+
+with open(PROJECT_DIR/'satphos/satphos3.pickle','rb') as f:
+    prodBs_MM,kms_MM,Aeqs_MM,Beqs_MM,Ceqs_MM,Deqs_MM,varAs_MM,varBs_MM,varCs_MM,varDs_MM = pickle.load(f)
+
+#%% Figure S20 (Phosphorylation Monocycles): plot 
+
+def logFit(x,xmax,Kx,n):
+    return xmax*x**n/(Kx**n+x**n)
+
+f = plt.figure(figsize=(16,5))
+gs = GridSpec(1,3,figure=f,wspace=0.5,hspace=0.6)
+
+f.text(0.001,0.91,'A',fontsize=letterLabelSize,fontname='roboto')
+ax = f.add_subplot([-0.01,.05,.3,.9])
+ax.imshow(pathway)
+ax.axis('off')
+
+f.text(0.27,0.91,'B',fontsize=letterLabelSize,fontname='roboto')
+ax = f.add_subplot(gs[0:1,1:2])
+ax.set_title('Mass-Action Kinetics',fontsize=axisFontSize)
+ax.hlines(0,10**-5,10**6,color='k',linestyle='dashed',linewidth=plotWidth)
+for i in range(len(prodAs_MA)):
+    ax.scatter(Beqs_MA[i]+Deqs_MA[i],normvarDs_MA[i],color=prodColorMap(i/len(prodAs_MA)))
+    params,cov = curve_fit(logFit,Beqs_MA[i]+Deqs_MA[i],normvarDs_MA[i],p0=[1,100,1])
+    ax.plot(np.logspace(-1,6,100),logFit(np.logspace(-1,6,100),params[0],params[1],params[2]),linestyle='dotted',color=prodColors[i])
+ax.set_xscale('log')
+ax.set_xlim([0.8*10**0,1.2*10**5])
+ax.set_ylim([-.2,1.05])
+ax.set_xlabel('Substrate Amount ($[B\']+[B]$)',fontsize=axisFontSize)
+ax.set_ylabel('Product\nLAS ($\Delta \hat{\sigma}^2_{\Delta [B]}$)',fontsize=axisFontSize,labelpad=-10)
+ax.set_yticks(np.linspace(-0.2,1,7))
+ax.set_yticks(np.linspace(-0.2,1,13),[],minor=1)
+ax.spines['left'].set_linewidth(tickWidth)
+ax.spines['bottom'].set_linewidth(tickWidth)
+ax.spines['right'].set_linewidth(0)
+ax.spines['top'].set_linewidth(0)
+ax.tick_params(axis='both',length=tickLength,width=tickWidth,labelsize=tickFontSize)
+ax.tick_params(axis='both',which='minor',length=tickLength/2,width=tickWidth/2,labelsize=tickFontSize)
+cax = f.add_subplot([0.6,0.35,.01,.4])
+coef_cbar = ax.figure.colorbar(plt.cm.ScalarMappable(norm=plt.Normalize(0,3), cmap=prodColorMap),cax=cax,ticks=[0,1,2,3])
+cax.yaxis.set_ticks_position('left')
+coef_cbar.set_label('[Enzyme]',fontsize=tickFontSize,rotation=-90,labelpad=17)
+coef_cbar.ax.tick_params(length=tickLength/2,width=tickWidth/2,labelsize=18)
+coef_cbar.outline.set_linewidth(2)
+coef_cbar.ax.set_yticklabels(['$10^{1}$','$10^2$','$10^3$','$10^4$'])
+
+f.text(0.65,0.91,'C',fontsize=letterLabelSize,fontname='roboto')
+ax = f.add_subplot(gs[0:1,2:3])
+ax.set_title('Enzyme Kinetics',fontsize=axisFontSize)
+ax.hlines(0,10**-5,10**6,color='k',linestyle='dashed',linewidth=plotWidth)
+for i in range(len(kms_MM)):
+    ax.scatter(Beqs_MM[i]+Deqs_MM[i],varDs_MM[i],color=plt.cm.bwr((np.log10(Aeqs_MM[i,0]/kms_MM[i,0])+2)/4))
+    params,cov = curve_fit(logFit,prodBs_MM[i,0:-3]*1000,varDs_MM[i,0:-3],p0=[1,1,1])
+    ax.plot(np.logspace(-1,6,100),logFit(np.logspace(-1,6,100),params[0],params[1],params[2]),linestyle='dotted',color=plt.cm.bwr((np.log10(Aeqs_MM[i,0]/kms_MM[i,0])+2)/4))
+ax.set_xscale('log')
+ax.set_xlim([8*10**0,4*10**5])
+ax.set_ylim([-.2,1.05])
+ax.set_xlabel('Substrate Amount ($[B\'] + [B]$)',fontsize=axisFontSize)
+ax.set_ylabel('Product\nLAS ($\Delta \hat{\sigma}^2_{\Delta [B]}$)',fontsize=axisFontSize,labelpad=-10)
+ax.set_yticks(np.linspace(-0.2,1,7))
+ax.set_yticks(np.linspace(-0.2,1,13),[],minor=1)
+ax.spines['left'].set_linewidth(tickWidth)
+ax.spines['bottom'].set_linewidth(tickWidth)
+ax.spines['right'].set_linewidth(0)
+ax.spines['top'].set_linewidth(0)
+ax.tick_params(axis='both',length=tickLength,width=tickWidth,labelsize=tickFontSize)
+ax.tick_params(axis='both',which='minor',length=tickLength/2,width=tickWidth/2,labelsize=tickFontSize)
+
+cbar_ax = f.add_axes([0.96,.35,.01,.4])
+coef_cbar = ax.figure.colorbar(plt.cm.ScalarMappable(norm=plt.Normalize(-2,2), cmap='bwr'),cax=cbar_ax,ticks=[-2,-1,0,1,2])
+cbar_ax.yaxis.set_ticks_position('left')
+coef_cbar.ax.set_yticklabels([-2,-1,0,1,2])
+coef_cbar.set_label('$log_{10}([A]_{eq}/K_M)$',fontsize=tickFontSize,rotation=-90,labelpad=20)
+coef_cbar.ax.tick_params(length=tickLength/2,width=tickWidth/2,labelsize=18)
+coef_cbar.outline.set_linewidth(2)
+
+plt.subplots_adjust(top = 0.93, bottom = 0.18, right = 0.99, left = -0.01)
+plt.show()
+
+
 
 #%% Figure S21 (Reactant Similarity): pull data 
 
