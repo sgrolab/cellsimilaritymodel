@@ -1,6 +1,6 @@
 #%% figure code 
 
-import pickle, sys, os, numpy as np
+import pickle, os, numpy as np
 from matplotlib import pyplot as plt 
 from matplotlib.gridspec import GridSpec
 from matplotlib import image as img
@@ -8,7 +8,9 @@ from matplotlib import patches as mpatches
 from matplotlib.colors import ListedColormap
 from scipy.optimize import curve_fit
 from scipy import stats
-
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).parent.parent))
 from utils.config import PROJECT_DIR 
 
 letterLabelSize=42
@@ -1170,15 +1172,6 @@ plt.show()
 
 def normdvar(kT):
     return 20/9*kT/(3+20/9*kT)
-
-with open(PROJECT_DIR / 'analyticalData/motifs_prodsat_sweepdata_reduced.pickle','rb') as f:
-    Tccs,Tccvar_dsis,Tccvar_drnd,kcats,kcatvar_dsis,kcatvar_drnd = pickle.load(f)
-kcatMrange = np.logspace(-4,0,61)
-Tccrange = np.logspace(2,4,11)
-kcat = 0.01
-Pprod = 0.01
-Tcc = 1000
-kTrange = np.logspace(-2,3,41)
 
 prodAs = np.logspace(-2,0,3)
 kcatAs = np.logspace(-4,0,9)
