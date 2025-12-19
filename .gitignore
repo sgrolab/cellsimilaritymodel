@@ -3,3 +3,9 @@
 
 # ignore Jupyter notebok consoles
 consoles/
+
+# ignore config 
+utils/config.py 
+
+# ignore pycache 
+**/__pycache__/
