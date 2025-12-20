@@ -499,7 +499,7 @@ f = plt.figure(figsize=(8,7))
 gs = GridSpec(2,2,figure=f,wspace=0.5,hspace=0.4)
 
 f.text(0.001,0.93,'A',fontsize=letterLabelSize,fontname='roboto')
-ax = f.add_subplot([-0.01,0.55,0.51,0.5])
+ax = f.add_subplot([-0.01,0.52,0.51,0.5])
 ax.imshow(prod)
 ax.axis('off')
 
