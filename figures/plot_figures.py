@@ -267,7 +267,7 @@ ax.scatter(burstSizes_0,normvarAs_0,color=colors[0],label='$P_{prod,A}=10^{-2}$'
 ax.scatter(burstSizes_1,normvarAs_1,color=colors[1],label='$P_{prod,A}=10^{-1}$')
 ax.scatter(burstSizes_2,normvarAs_2,color=colors[2],label='$P_{prod,A}=10^{0}$')
 ax.legend(frameon=1,fontsize=14,loc='upper left',bbox_to_anchor=[.25,.25,.5,.5])
-ax.set_xlabel('$P_A$ burst size',fontsize=axisFontSize)
+ax.set_xlabel('$P_A$ Burst Size',fontsize=axisFontSize)
 ax.set_xlim([0,20.4])
 ax.set_xticks(np.linspace(0,20,5))
 ax.set_xticks(np.linspace(0,20,21),[],minor=1)
