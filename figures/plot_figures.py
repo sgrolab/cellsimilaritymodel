@@ -2256,7 +2256,7 @@ ax.scatter(np.linspace(1.1,8.1,8),np.mean(relatedness_1002,axis=0),color=kcatCol
 ax.errorbar(np.linspace(1.1,8.1,8),np.mean(relatedness_1002,axis=0),yerr=np.std(relatedness_1002,axis=0),fmt='None',ecolor=kcatColor)
 ax.legend(frameon=0,fontsize=tickFontSize,loc='lower right')
 ax.set_ylim([0,7])
-ax.set_xlabel('Neighborhood Size (cell lengths)',fontsize=axisFontSize)
+ax.set_xlabel('Neighborhood Size (Cell Lengths)',fontsize=axisFontSize)
 ax.set_ylabel('Relatedness (Ave. Cousin #)',fontsize=axisFontSize)
 ax.spines['left'].set_linewidth(tickWidth)
 ax.spines['bottom'].set_linewidth(tickWidth)
