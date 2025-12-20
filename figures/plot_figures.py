@@ -1007,7 +1007,7 @@ for i in range(len(PprodAs)):
     ax.tick_params(axis='x',which='minor',length=tickLength/2,width=tickWidth/2,labelsize=tickFontSize)
     
 
-plt.subplots_adjust(top = .98, bottom = 0.07, right = .97, left = 0.03)
+plt.subplots_adjust(top = .98, bottom = 0.1, right = .97, left = 0.03)
 plt.show()
 
 #%% Figure S3 (Relative Errors): Pull data
