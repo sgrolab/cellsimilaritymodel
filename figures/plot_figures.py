@@ -606,7 +606,7 @@ plt.show()
 
 TCSpathway = img.imread(PROJECT_DIR / 'graphics/ngigraphic16.png')
 diffTFpathway = img.imread(PROJECT_DIR / 'graphics/ngigraphic61.png')
-cdGpathway = img.imread(PROJECT_DIR / 'graphics/ngigraphic17.png')
+cdGpathway = img.imread(PROJECT_DIR / 'graphics/ngigraphic17.png') # version with cdG label
 
 with open(PROJECT_DIR / 'diffTF/motifs_diffTF3.pickle','rb') as f:
     normvar_diffTF = pickle.load(f)
