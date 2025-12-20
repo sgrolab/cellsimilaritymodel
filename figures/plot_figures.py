@@ -932,13 +932,13 @@ for i in range(len(PprodAs)):
 
     ax = f.add_subplot(gs[i,1])
     ax.hlines(0,1,2,color='white',label='Numerical')
-    ax.hist(drnds[i,:,0],density=1,color=randomColor,label='randoms',alpha=0.5,bins=20)
+    ax.hist(drnds[i,:,0],density=1,color=randomColor,label='random',alpha=0.5,bins=20)
     ax.hist(dsiss[i,:,0],density=1,color=enzymeColor,label='sisters',alpha=0.5,bins=20)
     xmin = dAbounds[i][0]
     xmax = dAbounds[i][1]
     xs = np.linspace(xmin,xmax,xmax-xmin+1)
     ax.hlines(0,1,2,color='white',label='Analytical')
-    ax.plot(xs,stats.poisson.pmf(xs+PprodAs[i]*Tcc,PprodAs[i]*Tcc),color=randomColor,linewidth=plotWidth,linestyle='dashed',label='randoms')
+    ax.plot(xs,stats.poisson.pmf(xs+PprodAs[i]*Tcc,PprodAs[i]*Tcc),color=randomColor,linewidth=plotWidth,linestyle='dashed',label='random')
     ax.plot(xs,stats.poisson.pmf(xs+PprodAs[i]*Tcc,PprodAs[i]*Tcc),color=enzymeColor,linewidth=plotWidth,linestyle='dotted',label='sisters')
     ymax = np.max(stats.poisson.pmf(xs+PprodAs[i]*Tcc,PprodAs[i]*Tcc))
     ax.set_ylim([0,ymax*2])
@@ -983,14 +983,14 @@ for i in range(len(PprodAs)):
     xs = np.linspace(xmin,xmax,xmax-xmin+1)
     xbins = np.linspace(xmin,xmax,20)
     ax.hlines(0,1,2,color='white',label='Numerical')
-    ax.hist(drnds[i,:,1],bins=xbins,density=1,color=randomColor,label='randoms',alpha=0.5)
+    ax.hist(drnds[i,:,1],bins=xbins,density=1,color=randomColor,label='random',alpha=0.5)
     ax.hist(dsiss[i,:,1],bins=xbins,density=1,color=signalColor,label='sisters',alpha=0.5)
     
     meanB = 3/2*PprodAs[i]*kcatA*Tcc**2
     varBsis = round(absM_dAsis_var(kcatA,PprodAs[i],Tcc))
     varBrnd = round(absM_dArnd_var(kcatA,PprodAs[i],Tcc)/2)
     ax.hlines(0,1,2,color='white',label='Analytical')
-    ax.plot(xs,stats.norm.pdf(xs,0,np.sqrt(varBrnd)),color=randomColor,linestyle='dashed',linewidth=plotWidth,label='randoms')
+    ax.plot(xs,stats.norm.pdf(xs,0,np.sqrt(varBrnd)),color=randomColor,linestyle='dashed',linewidth=plotWidth,label='random')
     ax.plot(xs,stats.norm.pdf(xs,0,np.sqrt(varBsis)),color=signalColor,linestyle='dotted',linewidth=plotWidth,label='sisters')
     ymax = np.max(stats.norm.pdf(xs,0,np.sqrt(varBsis)))
     ax.set_ylim([0,ymax*2])
@@ -1007,7 +1007,7 @@ for i in range(len(PprodAs)):
     ax.tick_params(axis='x',which='minor',length=tickLength/2,width=tickWidth/2,labelsize=tickFontSize)
     
 
-plt.subplots_adjust(top = .98, bottom = 0.07, right = .97, left = 0.03)
+plt.subplots_adjust(top = .98, bottom = 0.1, right = .97, left = 0.03)
 plt.show()
 
 #%% Figure S3 (Relative Errors): Pull data
