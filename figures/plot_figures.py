@@ -787,7 +787,7 @@ for i in range(len(molAImgs)):
     var = 3*np.std(molCImgs[i][np.nonzero(molCImgs[i])])
     ax.imshow(molCImgs[i],cmap='inferno',vmin=mean-var,vmax=mean+var)
     ax.axis('off')
-ax = f.add_axes([0.02,.48,.1,.1],anchor='NW')
+ax = f.add_axes([0.02,.51,.1,.05],anchor='NW')
 ax.imshow(A)
 ax.axis('off')
 ax = f.add_axes([0.02,.31,.1,.05],anchor='NW')
