@@ -13,15 +13,15 @@ Description of how the code is organized
 ## Requirements
 ### Software Dependencies
 List of required software and versions:
-- python-version: 3.13
-- "cmapy>=0.6.6"
-- "matplotlib>=3.10.7"
-- "numpy>=2.3.4"
-- "opencv-python>=4.11.0.86"
-- "scipy>=1.16.2"
+- python-version=3.13
+- cmapy>=0.6.6
+- matplotlib>=3.10.7
+- numpy>=2.3.4
+- opencv-python>=4.11.0.86
+- scipy>=1.16.2
 
 ## Installation
 See setup.md file in `/docs` 
 
 ## Contact
-Contact Allyson Sgro at asgro@janelia.hhmi.org. 
+Contact Allyson Sgro at sgroa@janelia.hhmi.org. 
