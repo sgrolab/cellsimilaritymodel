@@ -2465,18 +2465,7 @@ ax = f.add_subplot([0,0,1,1])
 ax.imshow(seedcells)
 ax.axis('off')
 
-#%% Figure S18 (Toy Model Brekaout): pull data
-
-pathway = img.imread(PROJECT_DIR / 'graphics/ngigraphic89.png')
-
-#%% Figure S18 (Toy Model Brekaout): Plot
-
-f = plt.figure(figsize=(8,4.5))
-ax = f.add_subplot([0,0,1,1])
-ax.imshow(pathway)
-ax.axis('off')
-
-#%% Figure S19 (Correlation Coefficient): Pull Data
+#%% Figure S18 (Correlation Coefficient): Pull Data
 
 prodonly = img.imread(PROJECT_DIR / 'graphics/ngigraphic50.png')
 
@@ -2485,7 +2474,7 @@ with open(PROJECT_DIR/'correlationcoef/samplerun.pickle','rb') as f:
 
 times = np.linspace(0,10,10000)
 
-#%% Figure S19 (Correlation Coefficient): Plot
+#%% Figure S18 (Correlation Coefficient): Plot
 
 f = plt.figure(figsize=(16,6))
 gs = GridSpec(2,4,figure=f,wspace=0.6,hspace=0.3)
@@ -2620,6 +2609,19 @@ ax.tick_params(axis='both',which='minor',length=tickLength/2,width=tickWidth/2,l
 
 plt.subplots_adjust(top = .98, bottom = 0.15, right = .99, left = -0.05)
 plt.show()
+
+#%% Figure S19 (Toy Model Brekaout): pull data
+
+pathway = img.imread(PROJECT_DIR / 'graphics/ngigraphic89.png')
+
+#%% Figure S19 (Toy Model Brekaout): Plot
+
+f = plt.figure(figsize=(8,4.5))
+ax = f.add_subplot([0,0,1,1])
+ax.imshow(pathway)
+ax.axis('off')
+
+
 
 #%% Figure S20 (Phosphorylation Monocycles): pull data 
 
