@@ -21,7 +21,7 @@ class Cell:
         self.k7 = 0
         self.k8 = 0
         self.burstSize = 1
-        self.arrSize = int(1e6)
+        self.arrSize = int(1e7)
         self.t = np.array([0])
         self.V = np.array([1])
         self.A = np.array([0])
@@ -273,6 +273,7 @@ class Cell:
             self.cellCycle(partition,i)
         
         self.sampleCycle()
+        print(f"Setting array size as: {self.arrSize}")
     
 
     def inherit(self,motherCell,motherState):
@@ -318,7 +319,10 @@ class Cell:
             
 
     def cellCycle(self,partition,cycleIndex):
+        # print(f"Running cycle {cycleIndex}")
         self.runCycle(cycleIndex)
+
+        # print(f"After cycle {cycleIndex}, time is {self.motherStates[0]}")
         
         # store downsampled molecules amounts 
         # self.molcules[cycleIndex
@@ -377,6 +381,7 @@ class Cell:
     def updateDivTimes(self):
         self.divTime = rng.normal(self.Tcc,self.varTcc)
         self.divTimes = np.concatenate((self.divTimes,np.array([self.divTimes[-1] + self.divTime])))
+        print(f"updated div times to {self.divTimes}")
 
     def sampleCycle(self):
         
@@ -424,11 +429,12 @@ class Cell:
             # update counter
             n = n+1
             
-        
+        print(f"Sample cycle n is {n}, setting self.arrSize to {int(n*5)}")
         self.arrSize = int(n * 5)
         
-        if self.arrSize < 100:
-            self.arrSize = 1000
+        if self.arrSize < 1e4:
+            self.arrSize = int(1e5)
+        print(f"Setting self.arrSize to: {self.arrSize}")
 
     def runCycle(self,cycleIndex):
         
@@ -478,6 +484,8 @@ class Cell:
         
         # print('Array size: %i, cycle size: %i' % (self.arrSize,n))
         
+        # print(f"At the end of cycle {cycleIndex}, t={t_array[n-1]}, V={V_array[n-1]}, A={A_array[n-1]}, B={B_array[n-1]}")
+
         # update mother state
         self.motherStates[0,cycleIndex] = t_array[n-1]
         self.motherStates[1,cycleIndex] = V_array[n-1]
@@ -1203,10 +1211,14 @@ class Cell:
         return motherStates
 
     def getIntegerTimes(self):
-        times = np.linspace(0,self.divTimes[-2],int(self.divTimes[-2]/10)+1)
-        t_repeat = np.repeat(self.t[:,np.newaxis],len(times),axis=1)
+        print(f"Getting integer times, self.motherStates: {self.motherStates[0]}")
+        times = self.motherStates[0].astype(int)
+        print(f"Times are: {times}")
+
+        print(f"self.A: {self.A}")
+        # t_repeat = np.repeat(self.t[:,np.newaxis],len(times),axis=1)
         
-        return np.argmin(abs(np.subtract(t_repeat,times)),axis=0)
+        # return np.argmin(abs(np.subtract(t_repeat,times)),axis=0)
         
     def getMolecules(self):
         indices = self.getIntegerTimes()
