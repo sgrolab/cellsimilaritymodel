@@ -432,8 +432,8 @@ class Cell:
         print(f"Sample cycle n is {n}, setting self.arrSize to {int(n*5)}")
         self.arrSize = int(n * 5)
         
-        if self.arrSize < 1e4:
-            self.arrSize = int(1e5)
+        if self.arrSize < 1e3:
+            self.arrSize = int(1e4)
         print(f"Setting self.arrSize to: {self.arrSize}")
 
     def runCycle(self,cycleIndex):
