@@ -72,7 +72,7 @@ def plot_compare_normvar(inerhited_B,scrambled_B,inherited_A_B,scrambled_A_B):
     plt.subplot(1,3,3)
     plt.hlines(0,0,1000,color='k',linestyle='dashed',zorder=0)
     plt.plot(inerhited_B[2],label='inherited',color='gray')
-    plt.plot(scrambled_B[2],label='scrambled',color='purple')
+    plt.plot(scrambled_B[2],label='scrambled B only',color='purple')
     plt.plot(scrambled_A_B[2],label='scrambled A and B',color='purple',linestyle='dashed')
     plt.legend(frameon=0)
     plt.xlim([0,1000])

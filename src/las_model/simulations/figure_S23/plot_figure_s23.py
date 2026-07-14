@@ -3,6 +3,8 @@ from las_model.utils.config import PROJECT_DIR
 import matplotlib.pyplot as plt 
 import numpy as np 
 
+BURST_COLOR = 'deeppink'
+
 def plot_dvar_grid(vardsis_no_burst,vardrnd_no_burst,normvar_no_burst,vardsis_burst,vardrnd_burst,normvar_burst):
 
     plt.figure(figsize=(16,8))
@@ -44,7 +46,7 @@ def plot_normvar_comparison(normvar_no_burst,normvar_burst):
     plt.subplot(1,2,1)
     plt.hlines(0,0,1000,color='k',linestyle='dashed',zorder=0)
     plt.plot(normvar_no_burst[0],label='No Bursting',color='gray')
-    plt.plot(normvar_burst[0],label='Bursting',color='r')
+    plt.plot(normvar_burst[0],label='Bursting',color=BURST_COLOR)
     plt.legend(frameon=0)
     plt.xlim([0,1000])
     plt.ylim([-0.2,1])
@@ -55,7 +57,7 @@ def plot_normvar_comparison(normvar_no_burst,normvar_burst):
     plt.subplot(1,2,2)
     plt.hlines(0,0,1000,color='k',linestyle='dashed',zorder=0)
     plt.plot(normvar_no_burst[1],label='No Bursting',color='gray')
-    plt.plot(normvar_burst[1],label='Bursting',color='cyan')
+    plt.plot(normvar_burst[1],label='Bursting',color=BURST_COLOR)
     plt.legend(frameon=0)
     plt.xlim([0,1000])
     plt.ylim([-0.2,1])
