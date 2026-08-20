@@ -42,6 +42,19 @@ class Cell:
         self.E_array = np.empty(self.arrSize)
         self.F_array = np.empty(self.arrSize)
 
+    def __getstate__(self):
+        """Exclude pre-allocated buffer arrays from being pickled."""
+        state = self.__dict__.copy()
+        buffers = ['t_array', 'V_array', 'A_array', 'B_array', 'C_array', 'D_array', 'E_array', 'F_array']
+        for key in buffers:
+            state.pop(key, None)
+        return state
+
+    #def __setstate__(self, state):
+    #    """Restore instance state and re-initialize buffer arrays when loaded."""
+    #    self.__dict__.update(state)
+    #    self._init_buffers()  # Omit this line if buffers are not needed after unpickling
+
     def parameterize(self,circuit,params):
         self.circuit = circuit
         if circuit == 'single':
