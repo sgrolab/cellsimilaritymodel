@@ -95,8 +95,8 @@ for file in os.listdir(PROJECT_DIR / 'satprod/n1000'):
 
 graphic = img.imread(PROJECT_DIR / 'graphics/ngigraphic40.png')
 
-with open(PROJECT_DIR / 'asymmetric/asymmetric_bias_screen.pickle','rb') as f:
-    biases,Aeqs,normvarAs = pickle.load(f)
+with open(PROJECT_DIR / 'asymmetric/asymmetric_bias_screen_2.pickle','rb') as f:
+    biases,vardsis,vardrnd,normvar = pickle.load(f)
 
 with open(PROJECT_DIR / 'satprod/satprod_prodAsweep.pickle','rb') as f:
     PprodAs,Tcc,kcatA,Aeqs,drndA,dsisA = pickle.load(f)
@@ -221,7 +221,7 @@ ax.axis('off')
 f.text(0.001,0.23,'F',fontsize=letterLabelSize,fontname='roboto')
 ax = f.add_subplot(gs[2,0])
 ax.hlines(0,0,1,color='k',linestyle='dashed',linewidth=plotWidth)
-ax.scatter(biases,normvarAs,color=randomColor)
+ax.scatter(biases,normvar,color=randomColor)
 ax.set_xlim([0.5,1.01])
 ax.set_xticks(np.linspace(0.5,1,6))
 ax.set_xticks(np.linspace(0.5,1,11),[],minor=1)
