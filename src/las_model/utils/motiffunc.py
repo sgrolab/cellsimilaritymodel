@@ -367,12 +367,12 @@ class Cell:
             else:
                 coef = 1-self.partitionBias
            
-            self.A = np.array([int(self.A[-1]*coef)])
-            self.B = np.array([int(self.B[-1]*coef)])
-            self.C = np.array([int(self.C[-1]*coef)])
-            self.D = np.array([int(self.D[-1]*coef)])
-            self.E = np.array([int(self.E[-1]*coef)])
-            self.F = np.array([int(self.F[-1]*coef)])
+            self.A = self.motherStates[2,cycleIndex] * coef
+            self.B = self.motherStates[3,cycleIndex] * coef
+            self.C = self.motherStates[4,cycleIndex] * coef
+            self.D = self.motherStates[5,cycleIndex] * coef
+            self.E = self.motherStates[6,cycleIndex] * coef
+            self.F = self.motherStates[7,cycleIndex] * coef
         else:
             print('invalid partition')
             return
