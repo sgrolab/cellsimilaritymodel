@@ -496,11 +496,9 @@ class Cell:
         self.motherStates[6,cycleIndex] = E_array[n-1]
         self.motherStates[7,cycleIndex] = F_array[n-1]
         
-        t_array = np.trim_zeros(t_array,'b')
-        
         # update downsampled molecule tracker
-        times = np.linspace(t_array[0],t_array[-1],int(self.Tcc/10)+1)
-        t_repeat = np.repeat(t_array[:,np.newaxis],len(times),axis=1)
+        times = np.linspace(t_array[0],t_array[n-1],int(self.Tcc/10)+1)
+        t_repeat = np.repeat(t_array[:n,np.newaxis],len(times),axis=1)
         
         indices = np.argmin(abs(np.subtract(t_repeat,times)),axis=0)
         
@@ -1232,5 +1230,3 @@ class Cell:
         molecules[5] = self.F[indices]/self.V[indices]
         
         return molecules
-        
-    
