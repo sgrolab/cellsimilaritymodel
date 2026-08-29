@@ -1,13 +1,14 @@
 # Cell Class
 
 import numpy as np 
-rng = np.random.default_rng(seed=1000)
+# rng = np.random.default_rng(seed=1000)
 
 class Cell:
-    def __init__(self,Tcc,varTcc):
+    def __init__(self,Tcc,varTcc,rng):
         self.Tcc = Tcc
         self.varTcc = varTcc
-        self.divTime = rng.normal(self.Tcc,self.varTcc)
+        self.rng = rng 
+        self.divTime = self.rng.normal(self.Tcc,self.varTcc)
         self.divTimes = np.array([self.divTime])
         self.prodA = 0
         self.prodB = 0
@@ -339,13 +340,13 @@ class Cell:
             if self.circuit=='prod_fixedB':
                 self.A = self.prodA*self.Tcc
             else:
-                self.A = rng.binomial(self.motherStates[2,cycleIndex],0.5)
+                self.A = self.rng.binomial(self.motherStates[2,cycleIndex],0.5)
             
-            self.B = rng.binomial(self.motherStates[3,cycleIndex],0.5)
-            self.C = rng.binomial(self.motherStates[4,cycleIndex],0.5)
-            self.D = rng.binomial(self.motherStates[5,cycleIndex],0.5)
-            self.E = rng.binomial(self.motherStates[6,cycleIndex],0.5)
-            self.F = rng.binomial(self.motherStates[7,cycleIndex],0.5)
+            self.B = self.rng.binomial(self.motherStates[3,cycleIndex],0.5)
+            self.C = self.rng.binomial(self.motherStates[4,cycleIndex],0.5)
+            self.D = self.rng.binomial(self.motherStates[5,cycleIndex],0.5)
+            self.E = self.rng.binomial(self.motherStates[6,cycleIndex],0.5)
+            self.F = self.rng.binomial(self.motherStates[7,cycleIndex],0.5)
         elif partition == 'perfect':
             self.A = np.array([self.A[-1]//2])
             self.B = np.array([self.B[-1]//2])
@@ -354,7 +355,7 @@ class Cell:
             self.E = np.array([self.E[-1]//2])
             self.F = np.array([self.F[-1]//2])
         elif partition == 'correlated':
-            coef = rng.normal(0.5,0.1)
+            coef = self.rng.normal(0.5,0.1)
             self.A = np.array([int(self.A[-1]*coef)])
             self.B = np.array([int(self.B[-1]*coef)])
             self.C = np.array([int(self.C[-1]*coef)])
@@ -362,7 +363,7 @@ class Cell:
             self.E = np.array([int(self.E[-1]*coef)])
             self.F = np.array([int(self.F[-1]*coef)])
         elif partition =='asymmetric':
-            if rng.integers(2) == 0:
+            if self.rng.integers(2) == 0:
                 coef = self.partitionBias
             else:
                 coef = 1-self.partitionBias
@@ -379,7 +380,7 @@ class Cell:
 
 
     def updateDivTimes(self):
-        self.divTime = rng.normal(self.Tcc,self.varTcc)
+        self.divTime = self.rng.normal(self.Tcc,self.varTcc)
         self.divTimes = np.concatenate((self.divTimes,np.array([self.divTimes[-1] + self.divTime])))
         print(f"updated div times to {self.divTimes}")
 
@@ -530,7 +531,7 @@ class Cell:
             Rtot = prodA
             
             # generate random numbers
-            r1 = rng.uniform()
+            r1 = self.rng.uniform()
             
             # calculate time step
             tau = 1/Rtot*np.log(1/r1)
@@ -547,7 +548,7 @@ class Cell:
             Rtot = prodA
             
             # generate random numbers
-            r1 = rng.uniform()
+            r1 = self.rng.uniform()
             
             # calculate time step
             tau = 1/Rtot*np.log(1/r1)
@@ -564,7 +565,7 @@ class Cell:
             Rtot = prodA
             
             # generate random numbers
-            r1 = rng.uniform()
+            r1 = self.rng.uniform()
             
             # calculate time step
             tau = 1/Rtot*np.log(1/r1)
@@ -582,8 +583,8 @@ class Cell:
             Rtot = prodA + prodB + prodC
             
             # generate random numbers
-            r1 = rng.uniform()
-            r2 = rng.uniform() * Rtot
+            r1 = self.rng.uniform()
+            r2 = self.rng.uniform() * Rtot
             
             # calculate time step
             tau = 1/Rtot*np.log(1/r1)
@@ -608,8 +609,8 @@ class Cell:
              Rtot = prodA + prodB + prodC
              
              # generate random numbers
-             r1 = rng.uniform()
-             r2 = rng.uniform() * Rtot
+             r1 = self.rng.uniform()
+             r2 = self.rng.uniform() * Rtot
              
              # calculate time step
              tau = 1/Rtot*np.log(1/r1)
@@ -635,8 +636,8 @@ class Cell:
             Rtot = prodA + prodB + prodC + revC
             
             # generate random numbers
-            r1 = rng.uniform()
-            r2 = rng.uniform() * Rtot
+            r1 = self.rng.uniform()
+            r2 = self.rng.uniform() * Rtot
             
             # calculate time step
             tau = 1/Rtot*np.log(1/r1)
@@ -664,8 +665,8 @@ class Cell:
             Rtot = self.prodA + prodB
             
             # generate random numbers
-            r1 = rng.uniform()
-            r2 = rng.uniform() * Rtot
+            r1 = self.rng.uniform()
+            r2 = self.rng.uniform() * Rtot
             
             # calculate time step
             tau = 1/Rtot*np.log(1/r1)
@@ -685,8 +686,8 @@ class Cell:
             Rtot = self.prodA + prodB
             
             # generate random numbers
-            r1 = rng.uniform()
-            r2 = rng.uniform() * Rtot
+            r1 = self.rng.uniform()
+            r2 = self.rng.uniform() * Rtot
             
             # calculate time step
             tau = 1/Rtot*np.log(1/r1)
@@ -706,8 +707,8 @@ class Cell:
             Rtot = prodA + prodB + prodC
             
             # generate random numbers
-            r1 = rng.uniform()
-            r2 = rng.uniform() * Rtot
+            r1 = self.rng.uniform()
+            r2 = self.rng.uniform() * Rtot
             
             # calculate time step
             tau = 1/Rtot*np.log(1/r1)
@@ -731,8 +732,8 @@ class Cell:
             Rtot = prodB + prodC
             
             # generate random numbers
-            r1 = rng.uniform()
-            r2 = rng.uniform() * Rtot
+            r1 = self.rng.uniform()
+            r2 = self.rng.uniform() * Rtot
             
             # calculate time step
             tau = 1/Rtot*np.log(1/r1)
@@ -756,8 +757,8 @@ class Cell:
             Rtot = prodA + prodB + prodC
             
             # generate random numbers
-            r1 = rng.uniform()
-            r2 = rng.uniform() * Rtot
+            r1 = self.rng.uniform()
+            r2 = self.rng.uniform() * Rtot
             
             # calculate time step
             tau = 1/Rtot*np.log(1/r1)
@@ -780,8 +781,8 @@ class Cell:
             Rtot = prodA + prodB + prodC + degC
             
             # generate random numbers
-            r1 = rng.uniform()
-            r2 = rng.uniform() * Rtot
+            r1 = self.rng.uniform()
+            r2 = self.rng.uniform() * Rtot
             
             # calculate time step
             tau = 1/Rtot*np.log(1/r1)
@@ -806,8 +807,8 @@ class Cell:
             Rtot = prodA + prodB + prodC + prodD
             
             # generate random numbers
-            r1 = rng.uniform()
-            r2 = rng.uniform() * Rtot
+            r1 = self.rng.uniform()
+            r2 = self.rng.uniform() * Rtot
             
             # calculate time step
             tau = 1/Rtot*np.log(1/r1)
@@ -845,8 +846,8 @@ class Cell:
             Rtot = prodA + prodB + formB + formBp + prodC
             
             # generate random numbers
-            r1 = rng.uniform()
-            r2 = rng.uniform() * Rtot
+            r1 = self.rng.uniform()
+            r2 = self.rng.uniform() * Rtot
             
             # calculate time step
             tau = 1/Rtot*np.log(1/r1)
@@ -881,8 +882,8 @@ class Cell:
             Rtot = prodA + prodAp + prodB + prodApB + prodBp
             
             # generate random numbers
-            r1 = rng.uniform()
-            r2 = rng.uniform() * Rtot
+            r1 = self.rng.uniform()
+            r2 = self.rng.uniform() * Rtot
             
             # calculate time step
             tau = 1/Rtot*np.log(1/r1)
@@ -936,8 +937,8 @@ class Cell:
             Rtot = prodA + prodB + a_phos + a_dephos + apb_bind + apb_unbind + tphos + abp_bind + abp_unbind + dephos
             
             # generate random numbers
-            r1 = rng.uniform()
-            r2 = rng.uniform() * Rtot
+            r1 = self.rng.uniform()
+            r2 = self.rng.uniform() * Rtot
             
             # calculate time step
             tau = 1/Rtot*np.log(1/r1)
@@ -994,8 +995,8 @@ class Cell:
             Rtot = prodA + prodB + formB + formBp + prodC
             
             # generate random numbers
-            r1 = rng.uniform()
-            r2 = rng.uniform() * Rtot
+            r1 = self.rng.uniform()
+            r2 = self.rng.uniform() * Rtot
             
             # calculate time step
             tau = 1/Rtot*np.log(1/r1)
@@ -1025,8 +1026,8 @@ class Cell:
             Rtot = prodA + prodB + prodC + prodD
             
             # generate random numbers
-            r1 = rng.uniform()
-            r2 = rng.uniform() * Rtot
+            r1 = self.rng.uniform()
+            r2 = self.rng.uniform() * Rtot
             
             # calculate time step
             tau = 1/Rtot*np.log(1/r1)
@@ -1054,8 +1055,8 @@ class Cell:
             Rtot = prodA + prodB + prodC + degC + prodD
             
             # generate random numbers
-            r1 = rng.uniform()
-            r2 = rng.uniform() * Rtot
+            r1 = self.rng.uniform()
+            r2 = self.rng.uniform() * Rtot
             
             # calculate time step
             tau = 1/Rtot*np.log(1/r1)
@@ -1086,8 +1087,8 @@ class Cell:
             Rtot = prodA + prodB + prodC + prodD + prodE + prodF
             
             # generate random numbers
-            r1 = rng.uniform()
-            r2 = rng.uniform() * Rtot
+            r1 = self.rng.uniform()
+            r2 = self.rng.uniform() * Rtot
             
             # calculate time step
             tau = 1/Rtot*np.log(1/r1)
@@ -1122,8 +1123,8 @@ class Cell:
             Rtot = prodA + prodB + prodC + degB + prodD + prodE + degD + prodF
             
             # generate random numbers
-            r1 = rng.uniform()
-            r2 = rng.uniform() * Rtot
+            r1 = self.rng.uniform()
+            r2 = self.rng.uniform() * Rtot
             
             # calculate time step
             tau = 1/Rtot*np.log(1/r1)
@@ -1165,8 +1166,8 @@ class Cell:
             Rtot = prodA + prodAp + prodB + prodApB + prodBp + prodP
             
             # generate random numbers
-            r1 = rng.uniform()
-            r2 = rng.uniform() * Rtot
+            r1 = self.rng.uniform()
+            r2 = self.rng.uniform() * Rtot
             
             # calculate time step
             tau = 1/Rtot*np.log(1/r1)
@@ -1216,21 +1217,15 @@ class Cell:
         print(f"Times are: {times}")
 
         print(f"self.A: {self.A}")
+
+        return times
+
         # t_repeat = np.repeat(self.t[:,np.newaxis],len(times),axis=1)
         
         # return np.argmin(abs(np.subtract(t_repeat,times)),axis=0)
         
     def getMolecules(self):
-        indices = self.getIntegerTimes()
-        
-        molecules = np.zeros([6,len(indices)])
-        molecules[0] = self.A[indices]/self.V[indices]
-        molecules[1] = self.B[indices]/self.V[indices]
-        molecules[2] = self.C[indices]/self.V[indices]
-        molecules[3] = self.D[indices]/self.V[indices]
-        molecules[4] = self.E[indices]/self.V[indices]
-        molecules[5] = self.F[indices]/self.V[indices]
-        
-        return molecules
+       
+        return self.molecules
         
     
