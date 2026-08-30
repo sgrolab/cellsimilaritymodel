@@ -4,9 +4,6 @@
 # ignore Jupyter notebok consoles
 consoles/
 
-# ignore config 
-utils/config.py 
-
 # Python
 __pycache__/
 *.pyc
@@ -15,3 +12,6 @@ __pycache__/
 *.egg-info/
 dist/
 build/
+
+# ignore .env file 
+.env

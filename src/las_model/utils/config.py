@@ -1,3 +1,7 @@
+import os 
 from pathlib import Path 
+from dotenv import load_dotenv 
 
-PROJECT_DIR = Path("//prfs.hhmi.org/sgrolab/mark/comp_proj/")
+load_dotenv()
+
+PROJECT_DIR = Path(os.getenv("ROOT_DIR"))
