@@ -8,6 +8,7 @@ from las_model.utils.output import save_experiment
 # Experiment metadata 
 metadata = {
     'experiment_name': 'burstSize_prodA-0',
+    'experiment_directory': 'burstSize',
     'created': datetime.now().isoformat(),
     'seed': 1000,
     'nCells': 1000,
@@ -79,6 +80,6 @@ exp_dir = save_experiment(
     experiment_name=metadata['experiment_name'],
     data=[burstSizes, prodAs, Aeqs, Beqs, normvarAs, normvarBs],
     metadata=metadata,
-    base_dir=PROJECT_DIR / 'burstSize'
+    base_dir=PROJECT_DIR / metadata['experiment_directory']
 )
 print(f"Saved experiment to {exp_dir}")
