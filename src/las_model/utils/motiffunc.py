@@ -387,7 +387,7 @@ class Cell:
             self.divTime = self.rng.normal(self.Tcc,self.varTcc)
 
         self.divTimes = np.concatenate((self.divTimes,np.array([self.divTimes[-1] + self.divTime])))
-        print(f"updated div times to {self.divTime}")
+        # print(f"updated div times to {self.divTime}")
 
     def sampleCycle(self):
         

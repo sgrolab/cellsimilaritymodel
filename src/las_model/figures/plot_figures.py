@@ -41,6 +41,11 @@ def returnLogMinorTicks(start,stop):
         tickvals = np.concatenate((tickvals,np.linspace(10**i,10**(i+1),10)))
     return tickvals
 
+def normdvar(kT):
+    return 20/9*kT/(3+20/9*kT)
+
+def logFit(x,xmax,Kx,n):
+    return xmax*x**n/(Kx**n+x**n)
 
 #%% Figure 1 Concept: pull data 
 
@@ -303,6 +308,9 @@ plt.show()
 
 #%% Figure 3 (Adjusting LAS): Pull Data 
 
+with open(PROJECT_DIR / 'satprod/prodsat_sweep_kcat_low/prodsat_sweep_kcat_low/prodsat_sweep_kcat_low.pickle','rb') as f:
+    kcatA_low_sweep_kcatAs, kcatA_low_sweep_results = pickle.load(f)
+
 with open(PROJECT_DIR / 'analyticalData/motifs_prodsat_sweepdata_reduced.pickle','rb') as f:
     Tccs,Tccvar_dsis,Tccvar_drnd,kcats_prodsat,kcatvar_dsis,kcatvar_drnd = pickle.load(f)
 kcatMrange = np.logspace(-4,0,61)
@@ -385,7 +393,7 @@ ax.hlines(0,0,2*10**5,color='k',linestyle='dashed',linewidth=plotWidth,zorder=0)
 ax.plot(kTrange,normdvar(kTrange),color='k',linewidth=plotWidth,zorder=1,label='Analytical')
 ax.scatter(Tccs_sweep*kcat,1-Tccvar_dsis[:,1]/Tccvar_drnd[:,1],color=TccSweepColor,label='$T_{cc}$ sweep',marker='s')
 ax.scatter(Tccs2_Tcc*10**-1,Tccs2_normvarBs,color=TccSweepColor2,label='$T_{cc}$ sweep 2',marker='+')
-ax.scatter(kcats_prodsat*Tcc,1-kcatvar_dsis[:,1]/kcatvar_drnd[:,1],color=kcatColor,label='$k_{cat}$ sweep',marker='s')
+ax.scatter(kcatA_low_sweep_kcatAs*Tcc,kcatA_low_sweep_results['normvar'][:,1],color=kcatColor,label='$k_{cat}$ sweep',marker='s')
 ax.scatter(kcatA2_kcats*Tcc,kcatA2_normvarBs,color=kcatColor2,label='$k_{cat}$ sweep 2',marker='+')
 ax.legend(frameon=0,fontsize=10,loc='upper left',bbox_to_anchor=[0.45,0.37,.5,.5])
 ax.set_xscale('log')
