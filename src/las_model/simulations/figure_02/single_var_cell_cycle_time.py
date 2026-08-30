@@ -1,38 +1,68 @@
-﻿# Binding motif initial values 
-import pickle
-import sys
+﻿# Single Molecule, vary Tcc screen 
 import numpy as np 
+from las_model.utils.analyze import calculate_division_differences
+from datetime import datetime
 from las_model.utils import motiffunc as mf
 from las_model.utils.config import PROJECT_DIR
+from las_model.utils.output import save_experiment
 
+# Experiment metadata
+metadata = {
+    'experiment_name': 'single_var_cell_cycle_time',
+    'experiment_directory': 'varTcc',
+    'created': datetime.now().isoformat(),
+    'seed': 1000,
+    'nCells': 1000,
+    'nCells_equilibrium': 10,
+    'Tcc': 1000,
+    'varTccs': list(np.logspace(0,3,11)),
+    'circuit': 'single',
+    'PprodA': 10**-1,
+}
 
-nCells = 1000
-rng = np.random.default_rng(seed=1000)
+# Pin random seed 
+rng = np.random.default_rng(seed=metadata['seed'])
 
-Tcc = 1000
-varTccs = np.logspace(0,3,11)
-PprodA = 10**-1
+# Accumulate results 
+results = {
+    'dsis': [],
+    'drnd': [],
+    'vardsis': [],
+    'vardrnd': [],
+    'normvar': [],
+}
 
-divStates = np.zeros([len(varTccs),5,nCells])
+# === Iterate over varTcc values and simulate mother cells ==========================================
+for varTcc in metadata['varTccs']:
 
-for i in range(len(varTccs)):
+    print(f"Simulating for varTcc: {varTcc}")
 
-    motherCell = mf.Cell(Tcc,varTccs[i])
-    motherCell.parameterize('single',[PprodA])
-    motherCell.run(nCells)
-    
-    divStates[i] = motherCell.getMotherStates()
-    
-dsis = np.zeros([len(varTccs),nCells,5])
-drnd = np.zeros([len(varTccs),nCells,5])
+    motherCell = mf.Cell(metadata['Tcc'],varTcc,rng)
+    motherCell.parameterize(metadata['circuit'],[metadata['PprodA']])
+    motherCell.equilibrate(metadata['nCells_equilibrium'])
 
-for j in range(len(varTccs)):
-    for i in range(nCells):
-        cell1 = rng.binomial(divStates[j,:,i].astype('int'),0.5)
-        cell2 = rng.binomial(divStates[j,:,rng.integers(0,nCells)].astype('int'),0.5)
-        
-        dsis[j,i] = divStates[j,:,i] - 2*cell1
-        drnd[j,i] = cell1 - cell2
+    # Run mother cell 
+    motherCell.run(metadata['nCells'])
 
-with open(PROJECT_DIR / 'varTcc/varTcc_diffs.pickle','wb') as f:
-    pickle.dump([dsis,drnd],f,pickle.HIGHEST_PROTOCOL)
+    # Get mother states and calculate division differences
+    divStates = motherCell.getMotherStates()
+    dsis, drnd, vardsis, vardrnd, normvar = calculate_division_differences(divStates, rng)
+
+    # Append to results 
+    results['dsis'].append(dsis)
+    results['drnd'].append(drnd)
+    results['vardsis'].append(vardsis)
+    results['vardrnd'].append(vardrnd)
+    results['normvar'].append(normvar)
+
+# Stack results 
+results = {key: np.stack(v, axis=0) for key, v in results.items()}
+
+# Save results 
+exp_dir = save_experiment(
+    experiment_name=metadata['experiment_name'],
+    data = results,
+    metadata = metadata,
+    base_dir=PROJECT_DIR / metadata['experiment_directory'],
+)
+print(f"Experiment saved to: {exp_dir}")
