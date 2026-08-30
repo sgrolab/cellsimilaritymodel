@@ -381,8 +381,13 @@ class Cell:
 
     def updateDivTimes(self):
         self.divTime = self.rng.normal(self.Tcc,self.varTcc)
+
+        # check if divTime is negative
+        while self.divTime < 0:
+            self.divTime = self.rng.normal(self.Tcc,self.varTcc)
+
         self.divTimes = np.concatenate((self.divTimes,np.array([self.divTimes[-1] + self.divTime])))
-        print(f"updated div times to {self.divTimes}")
+        print(f"updated div times to {self.divTime}")
 
     def sampleCycle(self):
         
@@ -438,7 +443,8 @@ class Cell:
         print(f"Setting self.arrSize to: {self.arrSize}")
 
     def runCycle(self,cycleIndex):
-        
+
+        self.updateDivTimes()
         growthRate = 1/self.divTime
         
         t_array = np.zeros(self.arrSize)

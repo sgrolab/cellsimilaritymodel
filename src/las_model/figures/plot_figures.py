@@ -11,7 +11,7 @@ from scipy import stats
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
-from utils.config import PROJECT_DIR 
+from las_model.utils.config import PROJECT_DIR 
 
 letterLabelSize=42
 axisFontSize=20
@@ -111,9 +111,8 @@ with open(PROJECT_DIR / 'burstSize/burstSize_prodA-0.pickle','rb') as f:
     burstSizes_2,prodAs_2,Aeqs_2,Beqs_2,normvarAs_2,normvarBs_2 = pickle.load(f)
 colors = [enzymeColor,color_L,[68/255,10/255,21/255]]
 
-with open(PROJECT_DIR / 'varTcc/varTcc_diffs.pickle','rb') as f:
-   varTccs,dsis,drnd = pickle.load(f)
-
+with open(PROJECT_DIR / 'varTcc/single_var_cell_cycle_time/single_var_cell_cycle_time.pickle','rb') as f:
+   varTccs, varTcc_results = pickle.load(f)
 
 #%% Figure 2 (Toy Model): Plot 
 
@@ -284,7 +283,7 @@ ax.tick_params(axis='both',which='minor',length=tickLength/2,width=tickWidth/2,l
 f.text(0.74,0.23,'I',fontsize=letterLabelSize,fontname='roboto')
 ax = f.add_subplot(gs[2,3])
 ax.hlines(0,0,10**4,color='k',linewidth=plotWidth,linestyle='dashed')
-ax.scatter(varTccs,1-np.var(dsis[:,:,0],axis=1)/np.var(drnd[:,:,0],axis=1),color=randomColor)
+ax.scatter(varTccs,varTcc_results['normvar'][:,0],color=randomColor)
 ax.set_xscale('log')
 ax.set_xlabel('Cell Cycle Variation ($\sigma_{T_{cc}}$)',fontsize=axisFontSize)
 ax.set_xticks(np.concatenate((np.linspace(1,10,10),np.linspace(10,100,10),np.linspace(100,1000,10))),[],minor=1)

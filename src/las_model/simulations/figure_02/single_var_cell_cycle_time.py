@@ -61,7 +61,7 @@ results = {key: np.stack(v, axis=0) for key, v in results.items()}
 # Save results 
 exp_dir = save_experiment(
     experiment_name=metadata['experiment_name'],
-    data = results,
+    data = [metadata['varTccs'], results],
     metadata = metadata,
     base_dir=PROJECT_DIR / metadata['experiment_directory'],
 )
