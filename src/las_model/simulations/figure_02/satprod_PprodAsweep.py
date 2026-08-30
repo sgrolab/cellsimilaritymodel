@@ -11,12 +11,12 @@ metadata = {
     'experiment_directory': 'satprod/static_PprodA_sweep',
     'created': datetime.now().isoformat(),
     'seed': 1000,
-    'nCells': 100,
+    'nCells': 1000,
     'nCells_equilibrium': 10,
     'Tcc': 1000,
     'circuit': 'prodsat',
     'PprodAs': list(np.logspace(-3,2,6)),
-    'kcatA': 10**-3,
+    'kcatA': 10**-1,
 }
 
 # Pin random seed 

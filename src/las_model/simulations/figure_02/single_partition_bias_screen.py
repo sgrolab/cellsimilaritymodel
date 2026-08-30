@@ -1,45 +1,53 @@
 ﻿# Assymetric partitioning simulation 
-import pickle
 import numpy as np 
+from datetime import datetime 
 from las_model.utils import motiffunc as mf
 from las_model.utils.config import PROJECT_DIR
+from las_model.utils.output import save_experiment 
+
+# Experiment metadata
+metadata = {
+    'experiment_name': 'single_partition_bias_screen',
+    'experiment_directory': 'asymmetric',
+    'created': datetime.now().isoformat(),
+    'seed': 1000,
+    'nCells': 1000,
+    'nCells_equilibrium': 10,
+    'Tcc': 1000,
+    'Tcc_var': 0,
+    'circuit': 'single',
+    'PprodA': 10**-1,
+    'division': 'asymmetric',
+    'biases': list(np.linspace(0.55,1,10)),
+}
 
 # Pin random seed 
-rng = np.random.default_rng(seed=1000)
+rng = np.random.default_rng(seed=metadata['seed'])
 
-# Initialize cell parameters 
-Tcc = 1000
-circuit = 'single'
-prodA = 10**-1
-biases = np.linspace(0.55,1,10)
-
-# Set simulation parameters
-nCells = 1000
-nCycles_equilibrate = 10
-
+# Set arrays for saving data 
 vardsis = []
 vardrnd = []
 normvar = []
 
 # === Iterate over biases and simulate mother cells ==========================================
-for bias in biases:
+for bias in metadata['biases']:
 
     print(f"Simulating bias: {bias}")
 
-    motherCell = mf.Cell(Tcc,0)
-    motherCell.parameterize('single',[prodA])
-    motherCell.equilibrate(nCycles_equilibrate)
+    motherCell = mf.Cell(metadata['Tcc'],metadata['Tcc_var'],rng)
+    motherCell.parameterize(metadata['circuit'],[metadata['PprodA']])
+    motherCell.equilibrate(metadata['nCells_equilibrium'])
 
     # Run simulation 
-    motherCell.run(nCells,'asymmetric',bias)
+    motherCell.run(metadata['nCells'],metadata['division'],bias)
 
     # Save mother cell state 
     divStates = motherCell.getMotherStates()
 
-    dsis = np.zeros([6,nCells])
+    dsis = np.zeros([6,metadata['nCells']])
     drnd = np.zeros_like(dsis)
 
-    for k in range(nCells):
+    for k in range(metadata['nCells']):
 
         # Choose bias direction 
         cell1_bias = rng.integers(2)
@@ -56,7 +64,7 @@ for bias in biases:
             cell1 = (motherCellState * (1-bias)).astype('int')
 
         # Get random cell state 
-        rndCellIndx = rng.integers(0,nCells)
+        rndCellIndx = rng.integers(0,metadata['nCells'])
         rndCellState = divStates[:,rndCellIndx].astype('int')
 
         # Partition random cells 
@@ -74,5 +82,10 @@ for bias in biases:
     vardrnd.append(np.var(drnd, axis=1))
     normvar.append(1-vardsis[-1][0]/vardrnd[-1][0])
 
-with open(PROJECT_DIR / 'asymmetric/asymmetric_bias_screen_2.pickle','wb') as f:
-    pickle.dump([biases,vardsis,vardrnd,normvar],f,pickle.HIGHEST_PROTOCOL)
+exp_dir = save_experiment(
+    experiment_name=metadata['experiment_name'],
+    data=[metadata['biases'],vardsis,vardrnd,normvar],
+    metadata=metadata,
+    base_dir=PROJECT_DIR / metadata['experiment_directory'],
+)
+print(f"Experiment saved to {exp_dir}")
