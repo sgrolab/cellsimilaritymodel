@@ -333,17 +333,23 @@ params_kcat,cov_kcat = curve_fit(logFit,kcats_prodsat*Tcc,normvars_kcat,p0=[1,10
 kcatColorRange = [[255/255,184/255,98/255],[231/255,117/255,78/255]]
 kcatColors = np.transpose(np.array((np.linspace(255/255,231/255,4),np.linspace(184/255,117/255,4),np.linspace(98/255,78/255,4))))
 
-kcatA2_kcats = np.zeros(13)
-kcatA2_normvarBs = np.zeros(13)
-for file in os.listdir(PROJECT_DIR / 'prodsat_sweep/prodsat_kcatsweep'):
-    kcatAindex = int(file.split('_')[3].split('.')[0])
+# kcatA2_kcats = np.zeros(13)
+# kcatA2_normvarBs = np.zeros(13)
+# for file in os.listdir(PROJECT_DIR / 'prodsat_sweep/prodsat_kcatsweep'):
+#     kcatAindex = int(file.split('_')[3].split('.')[0])
 
-    filepath = os.path.join(PROJECT_DIR / 'prodsat_sweep/prodsat_kcatsweep', file)
-    with open(filepath,'rb') as f:
-        kcatA,normvarA,normvarB = pickle.load(f)
+#     filepath = os.path.join(PROJECT_DIR / 'prodsat_sweep/prodsat_kcatsweep', file)
+#     with open(filepath,'rb') as f:
+#         kcatA,normvarA,normvarB = pickle.load(f)
     
-    kcatA2_kcats[kcatAindex] = kcatA
-    kcatA2_normvarBs[kcatAindex] = normvarB
+#     kcatA2_kcats[kcatAindex] = kcatA
+#     kcatA2_normvarBs[kcatAindex] = normvarB
+
+with open(PROJECT_DIR / 'satprod/prodsat_sweep_kcat_high/prodsat_sweep_kcat_high.pickle','rb') as f:
+    kcatA_high_sweep_kcatAs, kcatA_high_sweep_results = pickle.load(f)
+
+kcatA2_kcats = np.array(kcatA_high_sweep_kcatAs)
+kcatA2_normvarBs = kcatA_high_sweep_results['normvar'][:,1]
 
 Tccs2_Tcc = np.zeros(5)
 Tccs2_normvarBs = np.zeros(5)
@@ -379,7 +385,6 @@ colors[:,1] = np.linspace(233/255,137/255,len(Rkcats))
 colors[:,2] = np.linspace(255/255,153/255,len(Rkcats))
 RkcatColors = ListedColormap(colors)
 linestyles = ['solid','dotted','dashed','dashdot']
-
 
 #%% Figure 3 (Adjusting LAS): Plot 
 
