@@ -311,6 +311,9 @@ plt.show()
 with open(PROJECT_DIR / 'satprod/prodsat_sweep_kcat_low/prodsat_sweep_kcat_low/prodsat_sweep_kcat_low.pickle','rb') as f:
     kcatA_low_sweep_kcatAs, kcatA_low_sweep_results = pickle.load(f)
 
+with open(PROJECT_DIR / 'satprod/prodsat_sweep_Tcc_low/prodsat_sweep_Tcc_low.pickle','rb') as f:
+    Tcc_low_sweep_Tccs, Tcc_low_sweep_results = pickle.load(f)
+
 with open(PROJECT_DIR / 'analyticalData/motifs_prodsat_sweepdata_reduced.pickle','rb') as f:
     Tccs,Tccvar_dsis,Tccvar_drnd,kcats_prodsat,kcatvar_dsis,kcatvar_drnd = pickle.load(f)
 kcatMrange = np.logspace(-4,0,61)
@@ -396,7 +399,7 @@ ax = f.add_subplot(gs[0,0])
 ax.vlines(27/20,-.2,1,color='gray',linestyle=(0, (8, 8)),zorder=0)
 ax.hlines(0,0,2*10**5,color='k',linestyle='dashed',linewidth=plotWidth,zorder=0)
 ax.plot(kTrange,normdvar(kTrange),color='k',linewidth=plotWidth,zorder=1,label='Analytical')
-ax.scatter(Tccs_sweep*kcat,1-Tccvar_dsis[:,1]/Tccvar_drnd[:,1],color=TccSweepColor,label='$T_{cc}$ sweep',marker='s')
+ax.scatter(np.array(Tcc_low_sweep_Tccs)*kcatA,Tcc_low_sweep_results['normvar'][:,1],color=TccSweepColor,label='$T_{cc}$ sweep',marker='s')
 ax.scatter(Tccs2_Tcc*10**-1,Tccs2_normvarBs,color=TccSweepColor2,label='$T_{cc}$ sweep 2',marker='+')
 ax.scatter(kcatA_low_sweep_kcatAs*Tcc,kcatA_low_sweep_results['normvar'][:,1],color=kcatColor,label='$k_{cat}$ sweep',marker='s')
 ax.scatter(kcatA2_kcats*Tcc,kcatA2_normvarBs,color=kcatColor2,label='$k_{cat}$ sweep 2',marker='+')
