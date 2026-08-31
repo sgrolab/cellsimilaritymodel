@@ -1,57 +1,89 @@
-﻿# Binding motif initial values 
-import pickle
-import sys
-import numpy as np 
+﻿# TODO: run this file
+
+# Production and Degradation: Rkcat sweep 
+from datetime import datetime 
+import numpy as np
 from las_model.utils import motiffunc as mf
 from las_model.utils.config import PROJECT_DIR
+from las_model.utils.analyze import calculate_offspring_similarity_time
+from las_model.utils.output import save_experiment 
 
-Tcc = 1000
-nCells = 1000
-nCycles = 10
-rng = np.random.default_rng(seed=1000)
+# Experiment metadata
+metadata = {
+    'experiment_name': 'proddeg_rkcat_sweep',
+    'experiment_directory': 'prodanddeg',
+    'created': datetime.now().isoformat(),
+    'seed': 1000,
+    'nCells': 100,
+    'nCells_equilibrium': 10,
+    'nCycles': 10,
+    'Tcc': 1000,
+    'varTcc': 0,
+    'circuit': 'proddeg',
+    'PprodA': 10**-1,
+    'kcatAs': np.logspace(-1.3,0,20),
+    'PprodB': 10**-1
+}
 
-prodA = 0.1
-prodB = 0.1
+# Pin random seed 
+rng = np.random.default_rng(seed=metadata['seed'])
 
-kcatAs = np.logspace(-1.3,0,20)
-kcatindex = int(sys.argv[1])
-kcatA = kcatAs[kcatindex]
-kcatB = 2*kcatA-0.1
-KM = (kcatA * prodA - kcatB * prodB /2) * Tcc**2
+# Calculate Rkcat values 
+kcatBs = 2*np.array(metadata['kcatAs'])-0.1
+K_Ms = (np.array(metadata['kcatAs']) * metadata['PprodA'] - kcatBs * metadata['PprodB'] /2) * metadata['Tcc']**2
 
-motherCell = mf.Cell(Tcc,0)
-motherCell.parameterize('proddeg',[prodA,prodB,kcatA,kcatB,KM])
-motherCell.equilibrate()
-motherCell.run(nCells)
+sweep_values = {
+    'kcatAs': metadata['kcatAs'],
+    'kcatBs': kcatBs,
+    'K_Ms': K_Ms
+}
 
-divStates = motherCell.getMotherStates()
+# Accumulate results 
+results = {
+    'dsis': [],
+    'drnd': [],
+    'vardsis': [],
+    'vardrnd': [],
+    'normvar': [],
+}
 
-concentrations = np.zeros([3,nCells,6,int(nCycles*Tcc/10+1)])
+# === Iterate over kcatA values and simulate cells =====
+for i in range(len(metadata['kcatAs'])):
 
-for i in range(nCells):
-    
-    sis1state = rng.binomial(divStates[:,i].astype('int'),0.5)
-    sis2state = divStates[:,i] - sis1state
-    rnd1state = rng.binomial(divStates[:,rng.integers(0,nCells)].astype('int'),0.5)
-    
-    sis1 = mf.Cell(Tcc,0)
-    sis1.inherit(motherCell,sis1state)
-    sis1.run(nCycles)
-    concentrations[0,i] = sis1.getMolecules()
-    
-    sis2 = mf.Cell(Tcc,0)
-    sis2.inherit(motherCell,sis2state)
-    sis2.run(nCycles)
-    concentrations[1,i] = sis2.getMolecules()
-    
-    rnd1 = mf.Cell(Tcc,0)
-    rnd1.inherit(motherCell,rnd1state)
-    rnd1.run(nCycles)
-    concentrations[2,i] = rnd1.getMolecules()
+    # Set kcatA, kcatB, KM values 
+    kcatA = metadata['kcatAs'][i]
+    kcatB = kcatBs[i]
+    K_M = K_Ms[i]
 
-vardsis = np.var(concentrations[0] - concentrations[1],axis=0)
-vardrnd = np.var(concentrations[0] - concentrations[2],axis=0)
-normvar = 1-vardsis/vardrnd
+    print(f"Simulating for kcatA = {kcatA}")
 
-with open(PROJECT_DIR / 'prodanddeg/Rkcatsweep2_' + str(kcatindex) + '.pickle','wb') as f:
-    pickle.dump([kcatA,kcatB,normvar],f,pickle.HIGHEST_PROTOCOL)
+    # Initialize and run Mother Cell 
+    motherCell = mf.Cell(metadata['Tcc'],metadata['varTcc'],rng)
+    motherCell.parameterize(
+        metadata['circuit'],
+        [metadata['PprodA'], metadata['PprodB'], kcatA, kcatB, K_M]
+    )
+    motherCell.equilibrate(metadata['nCells_equilibrium'])
+    motherCell.run(metadata['nCells'])
+
+    # Calculate offspring similarity 
+    dsis, drnd, vardsis, vardrnd, normvar = calculate_offspring_similarity_time(motherCell, metadata, rng)
+
+    # append results 
+    results['dsis'].append(dsis)
+    results['drnd'].append(drnd)
+    results['vardsis'].append(vardsis)
+    results['vardrnd'].append(vardrnd)
+    results['normvar'].append(normvar)
+
+# Stack results 
+results = {k: np.stack(v,axis=0) for k, v in results.items()}
+
+# Save results 
+exp_dir = save_experiment(
+    experiment_name=metadata['experiment_name'],
+    data = [sweep_values,results],
+    metadata=metadata,
+    base_dir=PROJECT_DIR / metadata['experiment_directory']
+)
+print(f"Experiment saved to f{exp_dir}")
