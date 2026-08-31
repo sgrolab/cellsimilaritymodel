@@ -354,6 +354,12 @@ with open(PROJECT_DIR / 'satprod/prodsat_sweep_kcat_high/prodsat_sweep_kcat_high
 kcatA2_kcats = np.array(kcatA_high_sweep_kcatAs)
 kcatA2_normvarBs = kcatA_high_sweep_results['normvar'][:,1]
 
+# TODO: update Tcc2 sweep pull with new data
+# NEW DATA LOCATION: 
+# with open(PROJECT_DIR / 'satprod/prodsat_sweep_Tcc_high/prodsat_sweep_Tcc_high.pickle','rb') as f:
+    # Tcc_high_sweep_Tccs, Tcc_high_sweep_results = pickle.load(f)
+
+# OLD DATA LOCATION: 
 Tccs2_Tcc = np.zeros(5)
 Tccs2_normvarBs = np.zeros(5)
 for file in os.listdir(PROJECT_DIR / 'prodsat_sweep/prodsat_Tccsweep'):
@@ -365,7 +371,7 @@ for file in os.listdir(PROJECT_DIR / 'prodsat_sweep/prodsat_Tccsweep'):
     
     Tccs2_Tcc[Tccindex] = Tcc
     Tccs2_normvarBs[Tccindex] = normvarB
-    
+
 Tcc = 1000
 
 times = np.linspace(0,10,1001)

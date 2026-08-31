@@ -1,39 +1,67 @@
 ﻿# Satured Production: Sweep Tcc (high PprodA, kcatA)
-import sys 
-import pickle
-import numpy as np 
+from datetime import datetime 
+import numpy as np
 from las_model.utils import motiffunc as mf
 from las_model.utils.config import PROJECT_DIR
+from las_model.utils.analyze import calculate_division_differences
+from las_model.utils.output import save_experiment 
 
-Tccs = [500,1000,2000,5000,10000]
-Tccindex = int(sys.argv[1])
-Tcc = Tccs[Tccindex]
+# Experiment metadata
+metadata = {
+    'experiment_name': 'prodsat_sweep_Tcc_high',
+    'experiment_directory': 'satprod',
+    'created': datetime.now().isoformat(),
+    'seed': 1000,
+    'nCells': 1000,
+    'nCells_equilibrium': 10,
+    'Tccs': [500,1000,2000,5000,10000],
+    'varTcc': 0,
+    'circuit': 'prodsat',
+    'PprodA': 10**-1,
+    'kcatA': 10**-1,
+}
 
-nCells = 1000
-rng = np.random.default_rng(seed=1000)
+# Pin random seed 
+rng = np.random.default_rng(seed=metadata['seed'])
 
-PprodA = 10**-1
-kcatA = 10**-1
+# Accumulate results 
+results = {
+    'dsis': [],
+    'drnd': [],
+    'vardsis': [],
+    'vardrnd': [],
+    'normvar': [],
+}
 
-motherCell = mf.Cell(Tcc,0)
-motherCell.parameterize('prodsat',[PprodA,kcatA])
-motherCell.equilibrate(20)
-motherCell.run(nCells)
+# === Iterate over Tcc values and simulate cells ==========
+for Tcc in metadata['Tccs']:
 
-divStates = motherCell.getMotherStates()
+    print(f"Simulating for Tcc = {Tcc}")
 
-dsis = np.zeros([nCells,6])
-drnd = np.zeros([nCells,6])
+    motherCell = mf.Cell(Tcc,metadata['varTcc'],rng)
+    motherCell.parameterize(metadata['circuit'],[metadata['PprodA'],metadata['kcatA']])
+    motherCell.equilibrate(metadata['nCells_equilibrium'])
 
-for i in range(nCells):
-    cell1 = rng.binomial(divStates[:,i].astype('int'),0.5)
-    cell2 = rng.binomial(divStates[:,rng.integers(0,nCells)].astype('int'),0.5)
-    
-    dsis[i] = divStates[:,i] - 2*cell1
-    drnd[i] = cell1 - cell2
+    motherCell.run(metadata['nCells'])
 
-normvarA = 1-np.var(dsis[:,0],axis=0)/np.var(drnd[:,0],axis=0)
-normvarB = 1-np.var(dsis[:,1],axis=0)/np.var(drnd[:,1],axis=0)
+    # Get mother states and calculate division differences 
+    divStates = motherCell.getMotherStates()
+    dsis, drnd, vardsis, vardrnd, normvar = calculate_division_differences(divStates,rng)
 
-with open(PROJECT_DIR / 'prodsat_sweep/prodsat_Tccsweep/prodsat_Tccsweep_Tcc_%.2i.pickle' % (Tccindex),'wb') as f:
-    pickle.dump([Tcc,normvarA,normvarB],f,pickle.HIGHEST_PROTOCOL)
+    results['dsis'].append(dsis)
+    results['drnd'].append(drnd)
+    results['vardsis'].append(vardsis)
+    results['vardrnd'].append(vardrnd)
+    results['normvar'].append(normvar)
+
+# Stack results 
+results = {k: np.stack(v,axis=0) for k, v in results.items()}
+
+# Save results 
+exp_dir = save_experiment(
+    experiment_name=metadata['experiment_name'],
+    data = [metadata['Tccs'],results],
+    metadata=metadata,
+    base_dir=PROJECT_DIR / metadata['experiment_directory']
+)
+print(f"Experiment saved to f{exp_dir}")
