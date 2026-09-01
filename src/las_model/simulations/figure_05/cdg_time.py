@@ -5,7 +5,7 @@ from datetime import datetime
 import numpy as np
 from las_model.utils import motiffunc as mf
 from las_model.utils.config import PROJECT_DIR
-from las_model.utils.analyze import calculate_division_differences
+from las_model.utils.analyze import calculate_offspring_similarity_time
 from las_model.utils.output import save_experiment
 
 # Experiment metadata
@@ -16,6 +16,7 @@ metadata = {
     'seed': 1000,
     'nCells': 1000,
     'nCells_equilibrium': 10,
+    'nCycles': 10,
     'Tcc': 1000,
     'varTcc': 0,
     'circuit': 'cdg',
@@ -47,7 +48,7 @@ motherCell.run(metadata['nCells'])
 
 # Get mother states and calculate division differences 
 divStates = motherCell.getMotherStates()
-dsis, drnd, vardsis, vardrnd, normvar = calculate_division_differences(divStates,rng)
+dsis, drnd, vardsis, vardrnd, normvar = calculate_offspring_similarity_time(divStates,rng)
 
 # Store results
 results['dsis'].append(dsis)
