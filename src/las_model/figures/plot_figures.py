@@ -632,8 +632,15 @@ cdGpathway = img.imread(PROJECT_DIR / 'graphics/ngigraphic17.png') # version wit
 with open(PROJECT_DIR / 'diffTF/motifs_diffTF3.pickle','rb') as f:
     normvar_diffTF = pickle.load(f)
 
+#TODO: after running figure_05/cdg_time.py, update the path to the new cdG data
+# Old data 
 with open(PROJECT_DIR / 'cdg/cdg_time.pickle','rb') as f:
     normvar_cdg = pickle.load(f)
+
+# New data 
+# with open(PROJECT_DIR / 'cdg/cdg_time/cdg_time.pickle','rb') as f:
+#     results_cdg = pickle.load(f)
+# normvar_cdg = results_cdg['normvar']
 
 with open(PROJECT_DIR / 'tcs/motifs_tcs3.pickle','rb') as f:
     normvar_tcs = pickle.load(f)
