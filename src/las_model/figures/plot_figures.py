@@ -629,8 +629,9 @@ TCSpathway = img.imread(PROJECT_DIR / 'graphics/ngigraphic16.png')
 diffTFpathway = img.imread(PROJECT_DIR / 'graphics/ngigraphic61.png')
 cdGpathway = img.imread(PROJECT_DIR / 'graphics/ngigraphic17.png') # version with cdG label
 
-with open(PROJECT_DIR / 'diffTF/motifs_diffTF3.pickle','rb') as f:
-    normvar_diffTF = pickle.load(f)
+with open(PROJECT_DIR / 'diffTF/diffTF_time/diffTF_time.pickle','rb') as f:
+    results_diffTF = pickle.load(f)
+normvar_diffTF = results_diffTF[0]['normvar'][0]
 
 #TODO: after running figure_05/cdg_time.py, update the path to the new cdG data
 # Old data 
