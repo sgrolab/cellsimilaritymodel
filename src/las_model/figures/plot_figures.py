@@ -643,8 +643,15 @@ with open(PROJECT_DIR / 'cdg/cdg_time.pickle','rb') as f:
 #     results_cdg = pickle.load(f)
 # normvar_cdg = results_cdg['normvar']
 
+# TODO: after running figure_05/tcs_time.py, update the path to the new TCS data
+# Old Data
 with open(PROJECT_DIR / 'tcs/motifs_tcs3.pickle','rb') as f:
-    normvar_tcs = pickle.load(f)
+    results_tcs = pickle.load(f)
+
+# New Data
+# with open(PROJECT_DIR / 'tcs/tcs_time/tcs_time.pickle','rb') as f:
+#     results_tcs = pickle.load(f)
+# normvar_tcs = results_tcs['normvar'][0]
 
 
 #%% Figure 5 (Full Pathways): Plot 

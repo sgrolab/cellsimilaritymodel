@@ -246,7 +246,7 @@ class Cell:
             self.k6 = params[8]         # KM,E
             self.k7 = params[9]         # kcatD
         
-        else:
+        else: # TCS
             self.prodA = params[0]
             self.prodB = params[1]
             self.k1 = params[2]
