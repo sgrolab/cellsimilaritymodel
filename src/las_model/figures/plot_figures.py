@@ -763,9 +763,16 @@ with open(PROJECT_DIR / 'gridcells/mac_cascade/cascade_10gen2_relatedness.pickle
 with open(PROJECT_DIR / 'gridcells/mac_cascade/cascade_10gen2_cousinmaps.pickle','rb') as f:
     imgs = pickle.load(f)
 
+# TODO: after running figure_06 cascade_time simulation, update to new data 
+# old data 
 with open(PROJECT_DIR / 'cascade/cascade_time_normdvar.pickle','rb') as f:
     normvar = pickle.load(f)
 times = np.linspace(0,10,1001)
+
+# new data 
+# with open(PROJECT_DIR / 'cascade/cascade_time/cascade_time.pickle','rb') as f:
+#     cascade_time_results = pickle.load(f)
+# normvar = cascade_time_results['normvar'][0]
 
 ts = [2000,4000,6000,8000,10000]
 molTimes = [4000,6000,8000,10000]

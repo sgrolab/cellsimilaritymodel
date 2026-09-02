@@ -1,47 +1,67 @@
-﻿# 3 Step Cascade Time Simulation 
-import pickle
-import numpy as np 
+﻿# TODO: run this simulation 
+
+# 3 Step Cascade Time Simulation 
+from datetime import datetime 
+import numpy as np
 from las_model.utils import motiffunc as mf
 from las_model.utils.config import PROJECT_DIR
+from las_model.utils.analyze import calculate_offspring_similarity_time
+from las_model.utils.output import save_experiment
 
-nCells = 1000
-nCycles = 10
-rng = np.random.default_rng(seed=1000)
+# Experiment metadata
+metadata = {
+    'experiment_name': 'cascade_time',
+    'experiment_directory': 'cascade',
+    'created': datetime.now().isoformat(),
+    'seed': 1000,
+    'nCells': 1000,
+    'nCells_equilibrium': 10,
+    'nCycles': 10,
+    'Tcc': 1000,
+    'varTcc': 0,
+    'circuit': 'cascade',
+    'PprodA': 10**-1,
+    'ka': 10**-1,
+    'kb': 10**-1,
+}
 
-Tcc = 1000
-prodA = 10**-1
-ka = 10**-1
-kb = 10**-1
+# Pin random seed 
+rng = np.random.default_rng(seed=metadata['seed'])
 
-motherCell = mf.Cell(Tcc,0)
-motherCell.parameterize('cascade',[prodA,ka,kb])
-motherCell.equilibrate(20)
-motherCell.run(nCells)
+# Accumulate results
+results = {
+    'dsis': [],
+    'drnd': [],
+    'vardrnd': [],
+    'vardsis': [],
+    'normvar': []
+}
 
-divStates = motherCell.motherStates[2::]
+# Intialize Mother cell and run simulation 
+motherCell = mf.Cell(metadata['Tcc'],metadata['varTcc'],rng)
+motherCell.parameterize(metadata['circuit'],[metadata['PprodA'],metadata['ka'],metadata['kb']])
+motherCell.equilibrate(metadata['nCells_equilibrium'])
+motherCell.run(metadata['nCells'])
 
-concentrations = np.zeros([3,nCells,6,int(nCycles*Tcc/10+1)])
+# Get mother states and calculate division differences 
+divStates = motherCell.getMotherStates()
+dsis, drnd, vardsis, vardrnd, normvar = calculate_offspring_similarity_time(motherCell,metadata,rng)
 
-for i in range(nCells):
-    
-    sis1state = rng.binomial(divStates[:,i].astype('int'),0.5)
-    sis2state = divStates[:,i] - sis1state
-    rnd1state = rng.binomial(divStates[:,rng.integers(0,nCells)].astype('int'),0.5)
-    
-    sis1 = mf.Cell(Tcc,0)
-    sis1.inherit(motherCell,sis1state)
-    sis1.run(nCycles)
-    concentrations[0,i] = sis1.molecules
-    
-    sis2 = mf.Cell(Tcc,0)
-    sis2.inherit(motherCell,sis2state)
-    sis2.run(nCycles)
-    concentrations[1,i] = sis2.molecules
-    
-    rnd1 = mf.Cell(Tcc,0)
-    rnd1.inherit(motherCell,rnd1state)
-    rnd1.run(nCycles)
-    concentrations[2,i] = rnd1.molecules
+# Store results
+results['dsis'].append(dsis)
+results['drnd'].append(drnd)
+results['vardrnd'].append(vardrnd)
+results['vardsis'].append(vardsis)
+results['normvar'].append(normvar)
 
-with open(PROJECT_DIR / 'cascade/motifs_cascade.pickle','wb') as f:
-    pickle.dump([motherCell,concentrations],f,pickle.HIGHEST_PROTOCOL)
+# Stack results 
+results = {k: np.stack(v,axis=0) for k, v in results.items()}
+
+# Save results 
+exp_dir = save_experiment(
+    experiment_name=metadata['experiment_name'],
+    data = results,
+    metadata=metadata,
+    base_dir=PROJECT_DIR / metadata['experiment_directory']
+)
+print(f"Experiment saved to f{exp_dir}")
