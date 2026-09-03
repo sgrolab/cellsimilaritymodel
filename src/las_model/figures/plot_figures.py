@@ -912,27 +912,13 @@ ax.axis('off')
 
 #%% Figure S2 (Distribution): Pull data
 
-PprodAs = np.logspace(-3,2,6)
-Tcc = 1000
-kcatA = 0.1
-motherAs = np.zeros([len(PprodAs),1000])
-motherBs = np.zeros_like(motherAs)
-drnds = np.zeros([len(PprodAs),1000,6])
-dsiss = np.zeros_like(drnds)
+# TODO: plot after running satprod_PprodAsweep with full PprodA range
+with open(PROJECT_DIR / 'satprod/satprod_PprodAsweep/satprod_PprodAsweep.pickle','rb') as f:
+    PprodAs, results = pickle.load(f) 
 
-for file in os.listdir(PROJECT_DIR / 'satprod/n1000'):
-    index = int(file.split('_')[2].split('.')[0])
+#%%
 
-    filepath = os.path.join(PROJECT_DIR / 'satprod/n1000', file)
-    with open(filepath,'rb') as f:
-        PprodA,Tcc,kcatA,motherA,motherB,drnd,dsis = pickle.load(f)
-    
-    motherAs[index] = motherA
-    motherBs[index] = motherB
-    drnds[index] = drnd
-    dsiss[index] = dsis
-
-
+print(f"shape of dsis: {results['dsis'].shape}")
 
 #%% Figure S2 (Distributions): Plot 
 
@@ -953,7 +939,7 @@ dBbounds = [[-200,200],[-750,750],[-2000,2000],[-7500,7500],[-20000,20000],[-750
 
 for i in range(len(PprodAs)):
     ax = f.add_subplot(gs[i,0])
-    ax.hist(motherAs[i],color=enzymeColor,density=1,label='Numerical',bins=20)
+    ax.hist(results['mother_As'][i],color=enzymeColor,density=1,label='Numerical',bins=20)
     xmin = motherAbounds[i][0]
     xmax = motherAbounds[i][1]
     xs = np.linspace(xmin,xmax,xmax-xmin+1)
@@ -975,8 +961,8 @@ for i in range(len(PprodAs)):
 
     ax = f.add_subplot(gs[i,1])
     ax.hlines(0,1,2,color='white',label='Numerical')
-    ax.hist(drnds[i,:,0],density=1,color=randomColor,label='random',alpha=0.5,bins=20)
-    ax.hist(dsiss[i,:,0],density=1,color=enzymeColor,label='sisters',alpha=0.5,bins=20)
+    ax.hist(results['drnd'][i,0],density=1,color=randomColor,label='random',alpha=0.5,bins=20)
+    ax.hist(results['dsis'][i,0],density=1,color=enzymeColor,label='sisters',alpha=0.5,bins=20)
     xmin = dAbounds[i][0]
     xmax = dAbounds[i][1]
     xs = np.linspace(xmin,xmax,xmax-xmin+1)
@@ -998,7 +984,7 @@ for i in range(len(PprodAs)):
     ax.tick_params(axis='x',which='minor',length=tickLength/2,width=tickWidth/2,labelsize=tickFontSize)
 
     ax = f.add_subplot(gs[i,2])
-    ax.hist(motherBs[i],density=1,bins=20,color=signalColor,label='Numerical')
+    ax.hist(results['mother_Bs'][i],density=1,bins=20,color=signalColor,label='Numerical')
     xmin = motherBbounds[i][0]
     xmax = motherBbounds[i][1]
     xs = np.linspace(xmin,xmax,xmax-xmin+1)
@@ -1026,8 +1012,8 @@ for i in range(len(PprodAs)):
     xs = np.linspace(xmin,xmax,xmax-xmin+1)
     xbins = np.linspace(xmin,xmax,20)
     ax.hlines(0,1,2,color='white',label='Numerical')
-    ax.hist(drnds[i,:,1],bins=xbins,density=1,color=randomColor,label='random',alpha=0.5)
-    ax.hist(dsiss[i,:,1],bins=xbins,density=1,color=signalColor,label='sisters',alpha=0.5)
+    ax.hist(results['drnd'][i,1],bins=xbins,density=1,color=randomColor,label='random',alpha=0.5)
+    ax.hist(results['dsis'][i,1],bins=xbins,density=1,color=signalColor,label='sisters',alpha=0.5)
     
     meanB = 3/2*PprodAs[i]*kcatA*Tcc**2
     varBsis = round(absM_dAsis_var(kcatA,PprodAs[i],Tcc))
