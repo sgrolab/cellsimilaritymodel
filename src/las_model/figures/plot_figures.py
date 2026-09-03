@@ -916,10 +916,6 @@ ax.axis('off')
 with open(PROJECT_DIR / 'satprod/satprod_PprodAsweep/satprod_PprodAsweep.pickle','rb') as f:
     PprodAs, results = pickle.load(f) 
 
-#%%
-
-print(f"shape of dsis: {results['dsis'].shape}")
-
 #%% Figure S2 (Distributions): Plot 
 
 def absM_dAsis_var(kcat,Pprod,Tcc):
@@ -1041,37 +1037,21 @@ plt.show()
 
 #%% Figure S3 (Relative Errors): Pull data
 
-PprodAs = np.logspace(-3,2,6)
-Tcc = 1000
-kcatA = 0.1
-motherAs = np.zeros([len(PprodAs),1000])
-motherBs = np.zeros_like(motherAs)
-drnds = np.zeros([len(PprodAs),1000,6])
-dsiss = np.zeros_like(drnds)
-
-for file in os.listdir(PROJECT_DIR / 'satprod/n1000'):
-    index = int(file.split('_')[2].split('.')[0])
-
-    filepath = os.path.join(PROJECT_DIR / 'satprod/n1000', file)
-    with open(filepath,'rb') as f:
-        PprodA,Tcc,kcatA,motherA,motherB,drnd,dsis = pickle.load(f)
-    
-    motherAs[index] = motherA
-    motherBs[index] = motherB
-    drnds[index] = drnd
-    dsiss[index] = dsis
+#TODO: run after running satprod_PprodAsweep.py with full PprodA range 
+with open(PROJECT_DIR / 'satprod/satprod_PprodAsweep/satprod_PprodAsweep.pickle','rb') as f:
+    PprodAs, results = pickle.load(f) 
 
 #%% Figure S3 (Relative Errors): Plot 
 
 f= plt.figure(figsize=(8,6))
 
 # compute cv^2 for amount of A across PprodAs 
-var_mother_As = np.var(motherAs/2,axis=1)
-mean_mother_As = np.mean(motherAs/2, axis=1)
+var_mother_As = np.var(results['mother_As']/2,axis=1)
+mean_mother_As = np.mean(results['mother_As']/2, axis=1)
 cv_mother_As = var_mother_As/mean_mother_As**2 
 
 # compute relative partition error across PprodAs 
-partition_errors = np.abs(dsiss[:,:,0])
+partition_errors = np.abs(results['dsis'][:,0])
 mean_partition_errors = np.mean(partition_errors,axis=1)
 normalized_mean_partition_errors = mean_partition_errors/mean_mother_As
 
