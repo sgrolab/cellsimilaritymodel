@@ -1,41 +1,68 @@
-﻿# Saturated Production: 2D Sweep PprodA, kcatA
+﻿#TODO: run this script 
 
-import os, sys, pickle, numpy as np 
+# Saturated Production: 2D Sweep kcatA, Tcc
+import numpy as np 
+from datetime import datetime 
 from las_model.utils import motiffunc as mf
 from las_model.utils.config import PROJECT_DIR
+from las_model.utils.analyze import calculate_division_differences
+from las_model.utils.output import save_experiment 
 
-nCells = 1000
-rng = np.random.default_rng(seed=1000)
+# Experiment metadata
+metadata = {
+    'experiment_name': 'prodsat_sweep_kcatA_Tcc',
+    'experiment_directory': 'satprod',
+    'created': datetime.now().isoformat(),
+    'seed': 1000,
+    'nCells': 1000,
+    'nCells_equilibrium': 10,
+    'Tccs': list(np.logspace(2,4,5)),
+    'varTcc': 0,
+    'circuit': 'prodsat',
+    'PprodA': 10**-1,
+    'kcats': list(np.logspace(-4,0,9)),
+}
 
-Tccs = np.logspace(2,4,5)
-prodAs = np.logspace(-2,0,3)
-kcatAs = np.logspace(-4,0,9)
+# Pin random seed 
+rng = np.random.default_rng(seed=metadata['seed'])
 
-prodAindex = int(sys.argv[1])
-prodA = prodAs[prodAindex]
-kcatAindex = int(sys.argv[2])
-kcatA = kcatAs[kcatAindex]
+results = None
+for i, Tcc in enumerate(metadata['Tccs']):
+    for j, kcatA in enumerate(metadata['kcats']):
 
-divStates = np.zeros([len(Tccs),5,nCells])
-dsis = np.zeros([len(Tccs),nCells,5])
-drnd = np.zeros([len(Tccs),nCells,5])
+        print(f"Running simulation for Tcc={Tcc}, kcatA={kcatA}")
 
-for i in range(len(Tccs)):
+        motherCell = mf.Cell(Tcc,metadata['varTcc'],rng)
+        motherCell.parameterize(metadata['circuit'],[metadata['PprodA'],kcatA])
+        motherCell.equilibrate(metadata['nCells_equilibrium'])
+        motherCell.run(metadata['nCells'])
 
-    motherCell = mf.Cell(Tccs[i],0)
-    motherCell.parameterize('prodsat',[prodA,kcatA])
-    motherCell.run(nCells)
+        # Get mother states and calculate division differences 
+        divStates = motherCell.getMotherStates()
+        dsis, drnd, vardsis, vardrnd, normvar = calculate_division_differences(divStates,rng)
     
-    divStates[i] = motherCell.getMotherStates()
-    
-    for j in range(nCells):
-        cell1 = rng.binomial(divStates[i,:,j].astype('int'),0.5)
-        cell2 = rng.binomial(divStates[i,:,rng.integers(0,nCells)].astype('int'),0.5)
-        
-        dsis[i,j] = divStates[i,:,j] - 2*cell1
-        drnd[i,j] = cell1 - cell2
+        if results is None:
+            nVars = dsis.shape[0]
+            results = {
+                'dsis': np.zeros((len(metadata['Tccs']), len(metadata['kcats']), nVars, metadata['nCells'])),
+                'drnd': np.zeros((len(metadata['Tccs']), len(metadata['kcats']), nVars, metadata['nCells'])),
+                'vardsis': np.zeros((len(metadata['Tccs']), len(metadata['kcats']), nVars)),
+                'vardrnd': np.zeros((len(metadata['Tccs']), len(metadata['kcats']), nVars)),
+                'normvar': np.zeros((len(metadata['Tccs']), len(metadata['kcats']), nVars)),
+            }
+
+        results['dsis'][i, j] = dsis
+        results['drnd'][i, j] = drnd
+        results['vardsis'][i, j] = vardsis
+        results['vardrnd'][i, j] = vardrnd
+        results['normvar'][i, j] = normvar
 
 
-with open(PROJECT_DIR / 'prodsat_sweep/sweep1/motifs_prodsat_2dsweep_prodA_' + str(prodAindex) + '_kcatA_' + str(kcatAindex) + '.pickle','wb') as f:
-    pickle.dump([prodA,kcatA,Tccs,divStates,dsis,drnd],f,pickle.HIGHEST_PROTOCOL)
-
+# Save results 
+exp_dir = save_experiment(
+    experiment_name=metadata['experiment_name'],
+    data = [metadata['kcats'], metadata['Tccs'], results],
+    metadata=metadata,
+    base_dir=PROJECT_DIR / metadata['experiment_directory']
+)
+print(f"Experiment saved to f{exp_dir}")

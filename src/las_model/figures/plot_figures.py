@@ -1201,30 +1201,33 @@ plt.show()
 
 #%% Figure S5 (Saturated Production Amplification Factor 2D): pull data 
 
+#TODO: run after running figure_S05/prodsat_sweep_kcatA_Tcc.py 
+
 def normdvar(kT):
     return 20/9*kT/(3+20/9*kT)
 
-prodAs = np.logspace(-2,0,3)
-kcatAs = np.logspace(-4,0,9)
-Tccs = np.logspace(2,4,5)
+with open(PROJECT_DIR / 'satprod/prodsat_sweep_kcatA_Tcc/prodsat_sweep_kcatA_Tcc.pickle','rb') as f:
+    kcatAs,Tccs,results = pickle.load(f)
 
-normvarBs = np.zeros([len(prodAs),len(kcatAs),len(Tccs)])
-model = np.zeros([len(kcatAs),len(Tccs)])
+model = normdvar(np.outer(kcatAs, Tccs))
 
-for i in range(len(model)):
-    for j in range(len(model[i])):
-            model[i,j] = normdvar(kcatAs[i]*Tccs[j])
 
-for file in os.listdir(PROJECT_DIR / 'prodsat_sweep/sweep1'):
+#normvarBs = np.zeros([len(prodAs),len(kcatAs),len(Tccs)])
+
+# for i in range(len(model)):
+#     for j in range(len(model[i])):
+#             model[i,j] = normdvar(kcatAs[i]*Tccs[j])
+
+# for file in os.listdir(PROJECT_DIR / 'prodsat_sweep/sweep1'):
     
-    prodAindex = int(file.split('_')[4])
-    kcatAindex = int(file.split('_')[6].split('.')[0])
+#     prodAindex = int(file.split('_')[4])
+#     kcatAindex = int(file.split('_')[6].split('.')[0])
     
-    filepath = os.path.join(PROJECT_DIR / 'prodsat_sweep/sweep1', file)
-    with open(filepath,'rb') as f:
-        prodA,kcatA,Tccs,divStates,dsis,drnd = pickle.load(f)
+#     filepath = os.path.join(PROJECT_DIR / 'prodsat_sweep/sweep1', file)
+#     with open(filepath,'rb') as f:
+#         prodA,kcatA,Tccs,divStates,dsis,drnd = pickle.load(f)
 
-    normvarBs[prodAindex,kcatAindex] = 1-np.var(dsis[:,:,1],axis=1)/np.var(drnd[:,:,1],axis=1)
+#     normvarBs[prodAindex,kcatAindex] = 1-np.var(dsis[:,:,1],axis=1)/np.var(drnd[:,:,1],axis=1)
 
 
 #%% Figure S5 (Saturated Production Amplification Factor 2D): plot 
