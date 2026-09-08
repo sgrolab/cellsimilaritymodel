@@ -2200,8 +2200,8 @@ plt.show()
 
 cascade = img.imread(PROJECT_DIR / 'graphics/ngigraphic75.png')
 
-with open(PROJECT_DIR / 'cascade/cascade5_time.pickle','rb') as f:
-    means,variances,normvar = pickle.load(f)
+with open(PROJECT_DIR / 'cascade/cascade5_time/cascade5_time.pickle','rb') as f:
+    results = pickle.load(f)
 times = np.linspace(0,20,2001)
 
 #%% Figure S12 (5 Step Cascade): plot 
@@ -2216,12 +2216,12 @@ ax.axis('off')
 
 f.text(0.36,0.88,'B',fontsize=letterLabelSize,fontname='roboto')
 ax = f.add_subplot(gs[0,1:3])
-ax.hlines(0,0,10,linestyle='dashed',linewidth=plotWidth,color='k')
-ax.plot(times,normvar[0],color=enzymeColor,label='A')
-ax.plot(times,normvar[1],color=signalColor,label='B')
-ax.plot(times,normvar[2],color=breakerColor,label='C')
-ax.plot(times,normvar[3],color=color_L,label='D')
-ax.plot(times,normvar[4],color=kcatColor,label='E')
+ax.hlines(0,0,20,linestyle='dashed',linewidth=plotWidth,color='k')
+ax.plot(times,results['normvar'][0],color=enzymeColor,label='A')
+ax.plot(times,results['normvar'][1],color=signalColor,label='B')
+ax.plot(times,results['normvar'][2],color=breakerColor,label='C')
+ax.plot(times,results['normvar'][3],color=color_L,label='D')
+ax.plot(times,results['normvar'][4],color=kcatColor,label='E')
 ax.legend(frameon=0,fontsize=tickFontSize,ncol=2)
 ax.set_xlabel('Generations',fontsize=axisFontSize)
 ax.set_xlim([0,20])

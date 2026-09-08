@@ -1121,7 +1121,7 @@ class Cell:
             elif r2 < prodA + prodB + prodC + prodD + prodE:
                 E = E + 1
             else:
-                D = D + 1
+                F = F + 1
         
         elif self.circuit=='crazyCascade': 
             
