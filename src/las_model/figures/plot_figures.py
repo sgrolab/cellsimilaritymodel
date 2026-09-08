@@ -1382,11 +1382,21 @@ irreversible = img.imread(PROJECT_DIR / 'graphics/ngigraphic53.png')
 reversible = img.imread(PROJECT_DIR / 'graphics/ngigraphic67.png')
 a_slider = img.imread(PROJECT_DIR / 'graphics/a_slider.png')
 
+# Old Data 
 with open(PROJECT_DIR / 'prodRateSat/bind3.pickle','rb') as f:
     prodAs,prodBs,Aeqs,Beqs,Ceqs,varAs,varBs,varCs = pickle.load(f)
 
+# New Data
+# with open(PROJECT_DIR / 'binding/bind_sweep_PprodA_PprodB/bind_sweep_PprodA_PprodB.pickle','rb') as f:
+#     PprodAs, PprodBs, results = pickle.load(f)
+
+# Reversible Binding: Old Data 
 with open(PROJECT_DIR / 'binding_rev/revbind4.pickle','rb') as f:
     prodAs_rev,prodBs_rev,Aeqs_rev,Beqs_rev,Ceqs_rev,varAs_rev,varBs_rev,varCs_rev,normvarAs_rev,normvarBs_rev,normvarCs_rev = pickle.load(f)
+
+# Reversible Binding: New Data 
+# with open(PROJECT_DIR / 'binding_rev/bind_sweep_PprodA_PprodB_rev/bind_sweep_PprodA_PprodB_rev.pickle','rb') as f:
+    # PprodAs_rev, PprodBs_rev, results_rev = pickle.load(f)
 
 prodColorRange = [enzymeColor,[68/255,10/255,21/255]]
 prodColors = np.transpose(np.array((np.linspace(prodColorRange[0][0],prodColorRange[1][0],31),
@@ -1394,6 +1404,8 @@ prodColors = np.transpose(np.array((np.linspace(prodColorRange[0][0],prodColorRa
                                     np.linspace(prodColorRange[0][2],prodColorRange[1][2],31))))
 
 #%% Figure S7 (Irreversible and Reversible Binding): Plot
+
+#TOOD: update with new data variables 
 
 f = plt.figure(figsize=(16,7))
 gs = GridSpec(2,4,figure=f,wspace=0.6,hspace=0.5)
