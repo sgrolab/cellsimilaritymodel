@@ -98,3 +98,24 @@ def calculate_offspring_similarity_time(motherCell,metadata,rng):
     normvar = 1-vardsis/vardrnd
 
     return dsis, drnd, vardsis, vardrnd, normvar
+
+def calcOrder(B,kcat,Km,A):
+    """
+    Compute local reaction order w.r.t. B via finite-difference in log-log space.
+    B, A: scalar or array-like (elementwise-compatible shapes).
+    Returns: array (or scalar) of same broadcasted shape.
+    """
+    B = np.asarray(B, dtype=float)
+    A = np.asarray(A, dtype=float)
+    
+    B1 = B+1 
+    rate0 = kcat/2*(A+B+Km-np.sqrt((A+B+Km)**2-4*A*B))
+    rate1 = kcat/2*(A+B1+Km-np.sqrt((A+B1+Km)**2-4*A*B1))
+       
+    logRate0 = np.log10(rate0)
+    logRate1 = np.log10(rate1)
+    
+    logB = np.log10(B)
+    logB1 = np.log10(B1)
+    
+    return (logRate1-logRate0)/(logB1-logB)

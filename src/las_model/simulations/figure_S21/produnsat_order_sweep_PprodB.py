@@ -1,76 +1,78 @@
-﻿# Unsaturated Production: Order Analysis with varying PprodB 
-import sys 
-import pickle
+﻿#TODO: run simulation 
+
+# Unsaturated Production: Order Analysis with varying PprodB 
 import numpy as np 
+from datetime import datetime 
 from las_model.utils import motiffunc as mf
 from las_model.utils.config import PROJECT_DIR
+from las_model.utils.analyze import calcOrder, calculate_division_differences
+from las_model.utils.output import save_experiment 
 
-def calcProdRate(A,B,kcat,Km):
-    return kcat/2*(A+B+Km-np.sqrt((A+B+Km)**2-4*A*B))
+# Experiment metadata 
+metadata = {
+    'experiment_name': 'produnsat_order_sweep_PprodB',
+    'experiment_directory': 'orderAnalysis',
+    'created': datetime.now().isoformat(),
+    'seed': 1000,
+    'nCells': 1000,
+    'nCells_equilibrium': 10,
+    'Tcc': 1000,
+    'varTcc': 0,
+    'circuit': 'produnsat',
+    'PprodA': 10**-1,
+    'PprodBs': list(np.logspace(-2,3,31)),
+    'kcatA': 10**-1,
+    'Km': 10**3
+}
 
-def calcOrder(B,kcat,Km,A):
-    
-    B1 = B+1 
-    rate0 = kcat/2*(A+B+Km-np.sqrt((A+B+Km)**2-4*A*B))
-    rate1 = kcat/2*(A+B1+Km-np.sqrt((A+B1+Km)**2-4*A*B1))
-       
-    logRate0 = np.log10(rate0)
-    logRate1 = np.log10(rate1)
-    
-    logB = np.log10(B)
-    logB1 = np.log10(B1)
-    
-    return (logRate1-logRate0)/(logB1-logB)
+# Pin random seed 
+rng = np.random.default_rng(seed=metadata['seed'])
 
-nCells = 1000
-Tcc = 1000
-rng = np.random.default_rng(seed=1000)
+# Aggregate results 
+results = {
+    'dsis': [],
+    'drnd': [],
+    'vardsis': [],
+    'vardrnd': [],
+    'normvar': [],
+    'order': [],
+}
 
-PprodA = 10**-1
-kcatA = 10**-1
-PprodBs = np.logspace(-2,4,31)
-PprodBindex = int(sys.argv[1])
-PprodB = PprodBs[PprodBindex]
-Km = 10**3
+for i, PprodB in enumerate(metadata['PprodBs']):
 
-motherCell = mf.Cell(Tcc,0)
-motherCell.parameterize('produnsat',[PprodB,PprodA,kcatA,Km])
-motherCell.equilibrate()
-motherCell.run(nCells)
+    print(f"Running simulation {i}/{len(metadata['PprodBs'])} for PprodB={PprodB}")
 
-As = motherCell.A/motherCell.V
-Bs = motherCell.B/motherCell.V
-Cs = motherCell.C/motherCell.V
+    # Initialize and run mother cell 
+    motherCell = mf.Cell(metadata['Tcc'],metadata['varTcc'],rng)
+    motherCell.parameterize(metadata['circuit'],[PprodB,metadata['PprodA'],metadata['kcatA'],metadata['Km']])
+    motherCell.equilibrate(metadata['nCells_equilibrium'])
+    motherCell.run(metadata['nCells'])
 
-mols = [As,Bs,Cs]
+    # Get mother states and calculate division differences
+    divStates = motherCell.getMotherStates()
+    dsis, drnd, vardsis, vardrnd, normvar = calculate_division_differences(divStates,rng)
 
-divStates = motherCell.getMotherStates()
-dsis = np.zeros([nCells,6])
-drnd = np.zeros([nCells,6])
+    # Get molecule amounts 
+    molecules = motherCell.getMolecules()
 
-for k in range(nCells):
-    cell1 = rng.binomial(divStates[:,k].astype('int'),0.5)
-    cell2 = rng.binomial(divStates[:,rng.integers(0,nCells)].astype('int'),0.5)
-    
-    dsis[k] = divStates[:,k] - 2*cell1
-    drnd[k] = cell1 - cell2
+    # calculate order at each time step 
+    order = calcOrder(molecules[1],metadata['kcatA'],metadata['Km'],molecules[0])
 
-vardrnd = np.var(drnd,axis=0)
-vardsis = np.var(dsis,axis=0)
-normvar = 1-vardsis/vardrnd
-vards = [vardrnd,vardsis,normvar]
+    # Append results 
+    results['dsis'].append(dsis)
+    results['drnd'].append(drnd)
+    results['vardsis'].append(vardsis)
+    results['vardrnd'].append(vardrnd)
+    results['normvar'].append(normvar)
+    results['order'].append(order)
 
-# compute reaction order at each time step 
-order = np.zeros(len(motherCell.A))
-for j in range(len(order)):
-    
-    # get amount of A
-    A = motherCell.B[j]
-    B = motherCell.A[j]
-    
-    # get reaction curve 
-    order[j] = calcOrder(B,kcatA,Km,A)
-    
+# Stack results 
+results = {k: np.stack(v,axis=0) for k, v in results.items()}
 
-with open(PROJECT_DIR / 'orderAnalysis/calcOrder4/order4_PprodB_%.2i.pickle' % (PprodBindex),'wb') as f:
-    pickle.dump([mols,vards,order],f,pickle.HIGHEST_PROTOCOL)
+exp_dir = save_experiment(
+    experiment_name=metadata['experiment_name'],
+    data=[metadata['PprodBs'],results],
+    metadata=metadata,
+    base_dir=PROJECT_DIR / metadata['experiment_directory'],
+)
+print(f"Experiment saved to {exp_dir}")
