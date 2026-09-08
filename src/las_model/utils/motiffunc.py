@@ -913,9 +913,9 @@ class Cell:
             
         elif self.circuit == 'phos2':
             
-            A = A
+            A_unphos = A
             Ap = B
-            B = C
+            B_unphos = C
             Bp = D
             ApB = E
             ABp = F
@@ -931,12 +931,12 @@ class Cell:
             
             prodA = self.prodA
             prodB = self.prodB
-            a_phos = kk*A
+            a_phos = kk*A_unphos
             a_dephos = krevk*Ap
-            apb_bind = k1*Ap*B
+            apb_bind = k1*Ap*B_unphos
             apb_unbind = krev1*ApB
             tphos = kt*ApB
-            abp_bind = k2*A*Bp
+            abp_bind = k2*A_unphos*Bp
             abp_unbind = krev2 * ABp
             dephos = kp * ABp
             
@@ -951,36 +951,46 @@ class Cell:
             
             # pick reaction 
             if r2 < prodA:
+                # Generate unphosphorylated A 
                 A = A + 1
             elif r2 < prodA + prodB:
+                # Generate unphosphorylated B 
                 C = C + 1
             elif r2 < prodA + prodB + a_phos: 
+                # autophosphorylation of A 
                 A = A - 1
                 B = B + 1
             elif r2 < prodA + prodB + a_phos + a_dephos: 
+                # dephosphorylation of A 
                 A = A + 1
                 B = B - 1
             elif r2 < prodA + prodB + a_phos + a_dephos + apb_bind:
+                # Binding of Phosphorylated A and unphosphorylated B 
                 B = B - 1
                 C = C - 1
                 E = E + 1
             elif r2 < prodA + prodB + a_phos + a_dephos + apb_bind + apb_unbind:
+                # Unbinding of Phosphorylated A and unphosphorylated B
                 B = B + 1
                 C = C + 1
                 E = E - 1
             elif r2 < prodA + prodB + a_phos + a_dephos + apb_bind + apb_unbind + tphos:
+                # Transphosphorylation of B by A 
                 E = E - 1
                 A = A + 1
                 D = D + 1
             elif r2 < prodA + prodB + a_phos + a_dephos + apb_bind + apb_unbind + tphos + abp_bind:
+                # Binding of unphosphorylated A and phosphorylated B
                 A = A - 1
                 D = D - 1
                 F = F + 1
             elif r2 < prodA + prodB + a_phos + a_dephos + apb_bind + apb_unbind + tphos + abp_bind + abp_unbind: 
+                # Unbinding of unphosphorylated A and phosphorylated B
                 A = A + 1
                 D = D + 1
                 F = F - 1
             else:
+                # Dephosphorylation of B when bound to unphosphorylated A 
                 A = A + 1
                 C = C + 1
                 F = F - 1
