@@ -506,10 +506,13 @@ class Cell:
         t_array = np.trim_zeros(t_array,'b')
         
         # update downsampled molecule tracker
-        times = np.linspace(t_array[0],t_array[-1],int(self.Tcc/10)+1)
-        t_repeat = np.repeat(t_array[:,np.newaxis],len(times),axis=1)
-        
-        indices = np.argmin(abs(np.subtract(t_repeat,times)),axis=0)
+        times = np.linspace(t_array[0],t_array[n-1],int(self.Tcc/10)+1)
+        pos = np.searchsorted(t_array[:n], times)
+        pos = np.clip(pos, 1, n - 1)
+        left = t_array[pos - 1]
+        right = t_array[pos]
+
+        indices = np.where((times - left) <= (right - times), pos - 1, pos)
         
         # print(indices)
         
@@ -1243,5 +1246,3 @@ class Cell:
     def getMolecules(self):
        
         return self.molecules
-        
-    
