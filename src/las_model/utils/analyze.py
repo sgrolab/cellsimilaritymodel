@@ -1,5 +1,5 @@
 import numpy as np 
-from las_model.utils import motiffunc as mf 
+from las_model.utils.cell import Cell
 from las_model.utils.parallel import run_pool
 
 def calculate_division_differences(divStates, rng):
@@ -51,17 +51,17 @@ def _simulate_cell_triplet(task_args):
     i, sis1_state, sis2_state, rnd1_state, mother_cell, metadata, seed = task_args
     child_rng = np.random.default_rng(seed)
 
-    sis1 = mf.Cell(metadata['Tcc'], metadata['varTcc'], child_rng)
+    sis1 = Cell(metadata['Tcc'], metadata['varTcc'], child_rng)
     sis1.inherit(mother_cell, sis1_state)
     sis1.run(metadata['nCycles'])
     molecules_sis1 = sis1.getMolecules()
 
-    sis2 = mf.Cell(metadata['Tcc'], metadata['varTcc'], child_rng)
+    sis2 = Cell(metadata['Tcc'], metadata['varTcc'], child_rng)
     sis2.inherit(mother_cell, sis2_state)
     sis2.run(metadata['nCycles'])
     molecules_sis2 = sis2.getMolecules()
 
-    rnd1 = mf.Cell(metadata['Tcc'], metadata['varTcc'], child_rng)
+    rnd1 = Cell(metadata['Tcc'], metadata['varTcc'], child_rng)
     rnd1.inherit(mother_cell, rnd1_state)
     rnd1.run(metadata['nCycles'])
     molecules_rnd1 = rnd1.getMolecules()
@@ -120,7 +120,7 @@ def _simulate_cell_quintet(task_args):
 
     molecules = []
     for state in (sis1_state, sis2_state, rnd1_state, sis1_scrambled_state, sis2_scrambled_state):
-        cell = mf.Cell(metadata['Tcc'], metadata['varTcc'], child_rng)
+        cell = Cell(metadata['Tcc'], metadata['varTcc'], child_rng)
         cell.inherit(mother_cell, state)
         cell.run(metadata['nCycles'])
         molecules.append(cell.getMolecules())
