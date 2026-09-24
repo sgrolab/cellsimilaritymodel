@@ -1,7 +1,7 @@
 # Burst Size Sweep, repeated for each total A production rate
 from datetime import datetime
 import numpy as np
-from las_model.utils import motiffunc as mf
+from las_model.utils.cell import Cell
 from las_model.utils.config import PROJECT_DIR
 from las_model.utils.output import save_experiment
 from las_model.utils.parallel import run_pool
@@ -29,7 +29,7 @@ def _simulate_single_burst(task_args):
 
     print(f"Simulating burst size {burstSize} with prodA {prodA}")
 
-    motherCell = mf.Cell(meta['Tcc'],0,task_rng)
+    motherCell = Cell(meta['Tcc'],0,task_rng)
     motherCell.parameterize(meta['circuit'],[prodA,meta['kcatA'],burstSize])
     motherCell.equilibrate(meta['nCycles_equilibrium'])
     motherCell.run(meta['nCells'])
