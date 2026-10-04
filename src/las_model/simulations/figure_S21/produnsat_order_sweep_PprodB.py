@@ -72,7 +72,8 @@ if __name__ == '__main__':
         for idx, PprodB in enumerate(metadata['PprodBs'])
     ]
 
-    sweep_results = run_pool(_simulate_single_pprodB, tasks, desc=metadata['experiment_name'])
+    sweep_results = run_pool(_simulate_single_pprodB, tasks, desc=metadata['experiment_name'],
+                             sort_key=lambda task: task[0])   # start the costly points first
 
     # Stack results along axis 0
     results = {

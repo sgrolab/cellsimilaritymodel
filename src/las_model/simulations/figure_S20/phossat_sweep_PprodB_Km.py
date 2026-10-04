@@ -83,7 +83,8 @@ if __name__ == '__main__':
         for j, Km in enumerate(metadata['Kms'])
     ]
 
-    sweep_results = run_pool(_simulate_single_pprodB_km, tasks, desc=metadata['experiment_name'])
+    sweep_results = run_pool(_simulate_single_pprodB_km, tasks, desc=metadata['experiment_name'],
+                             sort_key=lambda task: task[0])   # start the costly points first
 
     # Stack results into a (PprodB, Km, ...) grid 
     results = {
