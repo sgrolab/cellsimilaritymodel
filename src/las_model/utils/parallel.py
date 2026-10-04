@@ -25,10 +25,15 @@ def progress_file():
 _depth = 0   # run_pool calls active in this process; forked workers inherit the parent's count
 
 
-def run_pool(worker, tasks, desc=None, num_workers=None):
+def run_pool(worker, tasks, desc=None, num_workers=None, sort_key=None):
     """
     Apply worker to every task across num_workers forked processes (default: one per core)
     and return the results in task order.
+
+    sort_key, if given, maps a task to its expected relative cost; tasks are then started
+    costliest-first so no long task is left running alone at the end. This only reorders
+    the starts: results are still returned in task order, and which seed belongs to which
+    task is unchanged, so the output is identical either way.
 
     Runs serially when num_workers is 1. A pool that is nested, i.e. called from inside a
     worker process or from within another pool's task, also runs serially and is silent: no
@@ -64,9 +69,12 @@ def run_pool(worker, tasks, desc=None, num_workers=None):
                     results[i] = worker(task)
                     bar.update()
             else:
+                start_order = range(len(tasks))
+                if sort_key is not None:
+                    start_order = sorted(start_order, key=lambda i: sort_key(tasks[i]), reverse=True)
                 ctx = mp.get_context('fork')
                 with ProcessPoolExecutor(max_workers=num_workers, mp_context=ctx) as executor:
-                    futures = {executor.submit(worker, task): i for i, task in enumerate(tasks)}
+                    futures = {executor.submit(worker, tasks[i]): i for i in start_order}
                     for future in as_completed(futures):
                         results[futures[future]] = future.result()
                         bar.update()

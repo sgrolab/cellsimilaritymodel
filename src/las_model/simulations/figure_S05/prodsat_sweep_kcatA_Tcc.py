@@ -61,7 +61,8 @@ if __name__ == '__main__':
         for j, kcatA in enumerate(metadata['kcats'])
     ]
 
-    sweep_results = run_pool(_simulate_single_tcc_kcat, tasks, desc=metadata['experiment_name'])
+    sweep_results = run_pool(_simulate_single_tcc_kcat, tasks, desc=metadata['experiment_name'],
+                             sort_key=lambda task: (task[0], task[1]))   # start the costly points first
 
     # Stack results into a (Tcc, kcatA, ...) grid 
     results = {
