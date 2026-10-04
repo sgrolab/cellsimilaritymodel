@@ -5,15 +5,45 @@ Provides JIT-compiled functions for running reaction steps and cell cycles
 across all circuit motifs in motiffunc.py and gridfunc.py at native machine speed.
 """
 
+import enum
 import math
 import numba as nb
 import numpy as np
+
+
+# Circuit codes: parameterize.py looks Circuit[name] up once per cell, and the kernel
+# compares one integer per reaction instead of walking a chain of string comparisons.
+# Member names match the circuit strings the simulation scripts use.
+class Circuit(enum.IntEnum):
+    single = 0
+    pos_fb = 1
+    neg_fb = 2
+    bind = 3
+    bind2 = 4
+    revbind = 5
+    prodsat = 6
+    prodsat_burst = 7
+    produnsat = 8
+    prod_fixedB = 9
+    cascade = 10
+    proddeg = 11
+    phos = 12
+    phos_sat = 13
+    phos_int = 14
+    phos2 = 15
+    phos_cycle = 16
+    diffTF = 17
+    cdg = 18
+    cascade6 = 19
+    crazyCascade = 20
+    tcs = 21
 
 
 @nb.njit(inline='always', fastmath=True)
 def step_reaction(circuit, A, B, C, D, E, F, V, p, rng):
     """
     Execute a single Gillespie reaction event and compute time step tau.
+    circuit is a Circuit member (an IntEnum).
     Returns (A, B, C, D, E, F, tau).
     """
     prodA = p[0]
@@ -31,14 +61,14 @@ def step_reaction(circuit, A, B, C, D, E, F, V, p, rng):
     Tcc = p[12]
 
     # --- 1. single ---
-    if circuit == 'single':
+    if circuit == Circuit.single:
         Rtot = prodA
         r1 = rng.random()
         tau = -math.log(r1) / Rtot
         A = A + 1
 
     # --- 2. pos_fb ---
-    elif circuit == 'pos_fb':
+    elif circuit == Circuit.pos_fb:
         A_k3 = A ** k3
         k2_k3 = k2 ** k3
         prodA_eff = prodA + k1 * A_k3 / (k2_k3 + A_k3)
@@ -48,7 +78,7 @@ def step_reaction(circuit, A, B, C, D, E, F, V, p, rng):
         A = A + 1
 
     # --- 3. neg_fb ---
-    elif circuit == 'neg_fb':
+    elif circuit == Circuit.neg_fb:
         prodA_eff = k1 / (1.0 + (A / k2) ** k3)
         Rtot = prodA_eff
         r1 = rng.random()
@@ -56,7 +86,7 @@ def step_reaction(circuit, A, B, C, D, E, F, V, p, rng):
         A = A + 1
 
     # --- 4. bind & bind2 ---
-    elif circuit == 'bind' or circuit == 'bind2':
+    elif circuit == Circuit.bind or circuit == Circuit.bind2:
         r_prodC = k1 * A * B
         Rtot = prodA + prodB + r_prodC
         r1 = rng.random()
@@ -72,7 +102,7 @@ def step_reaction(circuit, A, B, C, D, E, F, V, p, rng):
             C = C + 1
 
     # --- 5. revbind ---
-    elif circuit == 'revbind':
+    elif circuit == Circuit.revbind:
         r_prodC = k1 * A * B
         revC = k2 * C
         Rtot = prodA + prodB + r_prodC + revC
@@ -93,7 +123,7 @@ def step_reaction(circuit, A, B, C, D, E, F, V, p, rng):
             C = C - 1
 
     # --- 6. prodsat ---
-    elif circuit == 'prodsat':
+    elif circuit == Circuit.prodsat:
         r_prodB = k1 * A
         Rtot = prodA + r_prodB
         r1 = rng.random()
@@ -105,7 +135,7 @@ def step_reaction(circuit, A, B, C, D, E, F, V, p, rng):
             B = B + 1
 
     # --- 7. prodsat_burst ---
-    elif circuit == 'prodsat_burst':
+    elif circuit == Circuit.prodsat_burst:
         r_prodB = k1 * A
         Rtot = prodA + r_prodB
         r1 = rng.random()
@@ -117,7 +147,7 @@ def step_reaction(circuit, A, B, C, D, E, F, V, p, rng):
             B = B + 1
 
     # --- 8. produnsat ---
-    elif circuit == 'produnsat':
+    elif circuit == Circuit.produnsat:
         disc = (k2 + A + B) ** 2 - 4.0 * A * B
         sq = math.sqrt(disc) if disc > 0.0 else 0.0
         r_prodC = (k1 / 2.0) * (k2 + A + B - sq)
@@ -134,7 +164,7 @@ def step_reaction(circuit, A, B, C, D, E, F, V, p, rng):
             C = C + 1
 
     # --- 9. prod_fixedB ---
-    elif circuit == 'prod_fixedB':
+    elif circuit == Circuit.prod_fixedB:
         A = prodA * Tcc * V
         disc = (k2 + A + B) ** 2 - 4.0 * A * B
         sq = math.sqrt(disc) if disc > 0.0 else 0.0
@@ -151,7 +181,7 @@ def step_reaction(circuit, A, B, C, D, E, F, V, p, rng):
         A = prodA * Tcc * V
 
     # --- 10. cascade ---
-    elif circuit == 'cascade':
+    elif circuit == Circuit.cascade:
         r_prodB = k1 * A
         r_prodC = k2 * B
         Rtot = prodA + r_prodB + r_prodC
@@ -166,7 +196,7 @@ def step_reaction(circuit, A, B, C, D, E, F, V, p, rng):
             C = C + 1
 
     # --- 11. proddeg ---
-    elif circuit == 'proddeg':
+    elif circuit == Circuit.proddeg:
         r_prodC = k1 * A
         disc = (k3 + B + C) ** 2 - 4.0 * B * C
         sq = math.sqrt(disc) if disc > 0.0 else 0.0
@@ -185,7 +215,7 @@ def step_reaction(circuit, A, B, C, D, E, F, V, p, rng):
             C = C - 1
 
     # --- 12. phos ---
-    elif circuit == 'phos':
+    elif circuit == Circuit.phos:
         r_prodC = prodB
         r_prodB = k1 * A
         r_prodD = k2 * B * C
@@ -207,7 +237,7 @@ def step_reaction(circuit, A, B, C, D, E, F, V, p, rng):
             D = D + 1
 
     # --- 13. phos_sat ---
-    elif circuit == 'phos_sat':
+    elif circuit == Circuit.phos_sat:
         Bp = D
         disc_c = (k4 + C + Bp) ** 2 - 4.0 * C * Bp
         sq_c = math.sqrt(disc_c) if disc_c > 0.0 else 0.0
@@ -235,7 +265,7 @@ def step_reaction(circuit, A, B, C, D, E, F, V, p, rng):
             C = C + 1
 
     # --- 14. phos_int ---
-    elif circuit == 'phos_int':
+    elif circuit == Circuit.phos_int:
         Ap = B
         B_spec = C
         ApB = D
@@ -263,7 +293,7 @@ def step_reaction(circuit, A, B, C, D, E, F, V, p, rng):
             A = A + 1
 
     # --- 15. phos2 ---
-    elif circuit == 'phos2':
+    elif circuit == Circuit.phos2:
         A_unphos = A
         Ap = B
         B_unphos = C
@@ -328,7 +358,7 @@ def step_reaction(circuit, A, B, C, D, E, F, V, p, rng):
             F = F - 1
 
     # --- 16. phos_cycle ---
-    elif circuit == 'phos_cycle':
+    elif circuit == Circuit.phos_cycle:
         Bp = D
         formBp = k1 * A * B
         formB = k3 * C * Bp
@@ -350,7 +380,7 @@ def step_reaction(circuit, A, B, C, D, E, F, V, p, rng):
             C = C + 1
 
     # --- 17. diffTF ---
-    elif circuit == 'diffTF':
+    elif circuit == Circuit.diffTF:
         r_prodC = k1 * A * B
         r_prodD = k2 * C
         Rtot = prodA + prodB + r_prodC + r_prodD
@@ -369,7 +399,7 @@ def step_reaction(circuit, A, B, C, D, E, F, V, p, rng):
             D = D + 1
 
     # --- 18. cdg ---
-    elif circuit == 'cdg':
+    elif circuit == Circuit.cdg:
         r_prodC = k1 * A
         disc = (k3 + B + C) ** 2 - 4.0 * B * C
         sq = math.sqrt(disc) if disc > 0.0 else 0.0
@@ -391,7 +421,7 @@ def step_reaction(circuit, A, B, C, D, E, F, V, p, rng):
             D = D + 1
 
     # --- 19. cascade6 ---
-    elif circuit == 'cascade6':
+    elif circuit == Circuit.cascade6:
         r_prodB = k1 * A
         r_prodC = k2 * B
         r_prodD = k3 * C
@@ -415,7 +445,7 @@ def step_reaction(circuit, A, B, C, D, E, F, V, p, rng):
             F = F + 1
 
     # --- 20. crazyCascade ---
-    elif circuit == 'crazyCascade':
+    elif circuit == Circuit.crazyCascade:
         r_prodB = k1 * A
         r_prodC = prodB
         disc_b = (k3 + B + C) ** 2 - 4.0 * B * C

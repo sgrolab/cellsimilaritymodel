@@ -56,7 +56,8 @@ if __name__ == '__main__':
         for idx, tcc in enumerate(metadata['Tccs'])
     ]
 
-    sweep_results = run_pool(_simulate_single_tcc, tasks, desc=metadata['experiment_name'])
+    sweep_results = run_pool(_simulate_single_tcc, tasks, desc=metadata['experiment_name'],
+                             sort_key=lambda task: task[0])   # start the costly points first
 
     # Stack results along axis 0
     results = {
