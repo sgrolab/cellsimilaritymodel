@@ -55,7 +55,8 @@ if __name__ == '__main__':
         for i, burstSize in enumerate(burstSizes)
     ]
 
-    sweep_results = run_pool(_simulate_single_burst, tasks, desc=metadata['experiment_name'])
+    sweep_results = run_pool(_simulate_single_burst, tasks, desc=metadata['experiment_name'],
+                             sort_key=lambda task: task[0])   # start the costly points first
 
     # Regroup the flat results per production rate and save each as its own experiment
     for e, exponent in enumerate(metadata['prodA_std_exponents']):

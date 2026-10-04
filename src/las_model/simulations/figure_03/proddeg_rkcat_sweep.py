@@ -71,7 +71,8 @@ if __name__ == '__main__':
         for i in range(len(metadata['kcatAs']))
     ]
 
-    sweep_results = run_pool(_simulate_single_kcat, tasks, desc=metadata['experiment_name'])
+    sweep_results = run_pool(_simulate_single_kcat, tasks, desc=metadata['experiment_name'],
+                             sort_key=lambda task: task[1])   # start the costly points first
 
     results = {
         k: np.stack([res[k] for res in sweep_results], axis=0)
