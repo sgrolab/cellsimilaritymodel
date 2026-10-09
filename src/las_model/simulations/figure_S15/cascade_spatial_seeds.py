@@ -30,13 +30,12 @@ def _simulate_single_seed(task_args):
 
     print(f"Simulating grid for seed = {seed}")
 
-    # Pin random seed. gridfunc draws from its module-level rng, and each worker is its own 
-    # process, so this only affects the grid built below. The seed itself is the swept 
-    # variable here, so it is used directly rather than drawn from a master rng. 
-    gf.rng = np.random.default_rng(seed=seed)
+    # Pin random seed. The seed itself is the swept variable here, so it is used directly
+    # rather than drawn from a master rng.
+    rng = np.random.default_rng(seed=seed)
 
     # Initiate, seed and run grid
-    grid = gf.Grid(meta['gridSize'], meta['gridSize'], meta['maxCells'])
+    grid = gf.Grid(meta['gridSize'], meta['gridSize'], meta['maxCells'], rng)
     grid.seed(meta['circuit'], [meta['PprodA'], meta['kcatA'], meta['kcatB']], meta['Tcc'], meta['varTcc'])
     grid.run()
 
