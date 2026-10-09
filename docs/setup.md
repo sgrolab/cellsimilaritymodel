@@ -80,7 +80,7 @@ uv run src/las_model/simulations/run_simulations.py --help
 Parameter sweeps run their points in parallel across all CPU cores, so the driver runs scripts one at a time. A few supplementary figures reuse another figure's simulation; their folders hold a stub or README pointing at the script to run.
 
 ### Figures
-`src/las_model/figures/plot_figures.py` draws the main and supplementary figures. Without arguments it opens each figure in a window; with `--save` it writes them to disk instead:
+`src/las_model/figures/plot_figures.py` draws the main and supplementary figures from the data in `ROOT_DIR`, or in the directory given with `--root-dir`. Without arguments it opens each figure in a window; with `--save` it writes them to disk instead:
 ```bash
 uv run src/las_model/figures/plot_figures.py                          # show every figure
 uv run src/las_model/figures/plot_figures.py figure_02 figure_S04     # just these

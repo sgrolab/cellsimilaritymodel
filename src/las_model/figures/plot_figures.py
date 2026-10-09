@@ -1,5 +1,14 @@
 #!/usr/bin/env python
-# figure code
+"""Draw the main and supplementary figures of the paper from the simulation outputs.
+
+Each figure is a function, figure_01 ... figure_S21, that reads the pickles the simulation
+scripts wrote and lays out the panels. Without arguments every figure is drawn, in order; name
+figures to draw a subset. Without --save each figure opens in a window and the next one is
+drawn when it is closed; with --save they are written to DIR/<figure>.<format> instead, without
+opening windows. The data directory is the one the simulation scripts wrote to (ROOT_DIR from
+the environment or .env), or the one given with --root-dir. A figure whose data is missing is
+reported as failed and the others are still drawn.
+"""
 
 import sys
 import pickle, os, numpy as np
@@ -15,7 +24,10 @@ from scipy.optimize import curve_fit
 from scipy import stats
 from pathlib import Path
 sys.path.append(str(Path(__file__).parents[2]))     # src/, so the las_model imports work without PYTHONPATH
-from las_model.utils.config import PROJECT_DIR 
+try:
+    from las_model.utils.config import PROJECT_DIR
+except TypeError:   # ROOT_DIR is not set: --root-dir can still supply the data directory, and --help must work
+    PROJECT_DIR = None
 
 letterLabelSize=42
 axisFontSize=20
@@ -2859,21 +2871,31 @@ FIGURES = {
 
 if __name__ == '__main__':
     import argparse
-    parser = argparse.ArgumentParser(description='Plot the paper figures. Without --save each figure opens in a window; with --save they are written to disk.')
-    parser.add_argument('figures', nargs='*', metavar='FIGURE', help='figures to plot, e.g. figure_02 figure_S04 (default: all)')
-    parser.add_argument('--save', metavar='DIR', help='save each figure as DIR/<figure>.<format> instead of showing it')
-    parser.add_argument('--format', default=SAVE_FORMAT, help='file format when saving (default: %(default)s)')
-    parser.add_argument('--dpi', type=int, default=SAVE_DPI, help='resolution when saving (default: %(default)s)')
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument('figures', nargs='*', metavar='FIGURE',
+                        help='a figure to draw, e.g. figure_02 or figure_S04; default: all of ' + ' '.join(FIGURES))
+    parser.add_argument('--root-dir', metavar='DIR', type=Path, help='data directory to read from (default: ROOT_DIR from the environment or .env)')
+    parser.add_argument('--save', metavar='DIR', type=Path, help='write each figure to DIR/<figure>.<format> instead of showing it')
+    parser.add_argument('--format', metavar='FMT', default=SAVE_FORMAT, help='file format when saving (default: %(default)s)')
+    parser.add_argument('--dpi', metavar='N', type=int, default=SAVE_DPI, help='resolution in dots per inch when saving (default: %(default)s)')
     args = parser.parse_args()
-
-    if args.save:
-        SAVE_DIR = Path(args.save)
-        SAVE_DIR.mkdir(parents=True, exist_ok=True)
-        SAVE_FORMAT, SAVE_DPI = args.format, args.dpi
 
     unknown = [n for n in args.figures if n not in FIGURES]
     if unknown:
         parser.error(f"unknown figure(s): {' '.join(unknown)}; choose from {' '.join(FIGURES)}")
+
+    if args.root_dir is not None:
+        PROJECT_DIR = args.root_dir.resolve()
+        if not PROJECT_DIR.is_dir():
+            parser.error(f'data directory not found: {PROJECT_DIR}')
+    elif PROJECT_DIR is None:
+        parser.error('no data directory: pass --root-dir or set ROOT_DIR (in the environment or a .env file)')
+    print(f'data directory: {PROJECT_DIR}')
+
+    if args.save is not None:
+        SAVE_DIR = args.save
+        SAVE_DIR.mkdir(parents=True, exist_ok=True)
+        SAVE_FORMAT, SAVE_DPI = args.format, args.dpi
 
     failed = []
     for name in args.figures or FIGURES:
