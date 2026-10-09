@@ -1,17 +1,26 @@
-# Cell Class
+"""
+A single cell running a circuit through successive cell cycles with the numba
+Gillespie kernel.  Used directly for lineage (motif) simulations and by
+gridfunc.Grid for spatial simulations.
 
-import numpy as np 
-import math
-from las_model.utils.gillespie_numba import run_cycle_numba, pack_params, to_scalar, step_reaction
+Each completed cycle records the end-of-cycle state (motherStates) and the
+trajectory downsampled to Tcc/10 (molecules, as concentrations).  Division
+splits the end-of-cycle counts complementarily: the cell keeps one share and
+partition() returns the other for a daughter.
+"""
+
+import numpy as np
+from las_model.utils.gillespie_numba import run_cycle_numba, pack_params, to_scalar
 from las_model.utils.parameterize import parameterize_cell
 
+
 class Cell:
-    def __init__(self,Tcc,varTcc,rng):
+    def __init__(self,Tcc,varTcc,rng,t0=0):
         self.Tcc = Tcc
         self.varTcc = varTcc
         self.rng = rng 
         self.divTime = self.rng.normal(self.Tcc,self.varTcc)
-        self.divTimes = np.array([self.divTime])
+        self.divTimes = np.array([t0])
         self.prodA = 0
         self.prodB = 0
         self.prodC = 0
@@ -25,7 +34,7 @@ class Cell:
         self.k8 = 0
         self.burstSize = 1
         self.arrSize = int(1e7)
-        self.t = np.array([0])
+        self.t = np.array([t0])
         self.V = np.array([1])
         self.A = np.array([0])
         self.B = np.array([0])
@@ -33,6 +42,7 @@ class Cell:
         self.D = np.array([0])
         self.E = np.array([0])
         self.F = np.array([0])
+        self._reset_history()
         self._init_buffers()
 
     def _init_buffers(self):
@@ -45,6 +55,11 @@ class Cell:
         self.E_array = np.empty(self.arrSize)
         self.F_array = np.empty(self.arrSize)
 
+    def _reset_history(self):
+        self._states = []      # per cycle: [t, V, A, B, C, D, E, F] at the end of the cycle
+        self._times = []       # per cycle: times of the Tcc/10 downsampled trajectory
+        self._molecules = []   # per cycle: (6, samples) concentrations of A..F
+
     def __getstate__(self):
         """Exclude pre-allocated buffer arrays from being pickled."""
         state = self.__dict__.copy()
@@ -53,34 +68,35 @@ class Cell:
             state.pop(key, None)
         return state
 
-    #def __setstate__(self, state):
-    #    """Restore instance state and re-initialize buffer arrays when loaded."""
-    #    self.__dict__.update(state)
-    #    self._init_buffers()  # Omit this line if buffers are not needed after unpickling
-        
+    @property
+    def motherStates(self):
+        """(8, nCycles): t, V, A, B, C, D, E, F at the end of each completed cycle."""
+        if not self._states:
+            return np.zeros([8,0])
+        return np.array(self._states).T
+
+    def _stack_samples(self, blocks, width):
+        """Lay per-cycle sample blocks end to end; consecutive blocks share one sample."""
+        nCycles = len(blocks)
+        step = int(self.Tcc/10)
+        out = np.zeros([width, int(nCycles*self.Tcc/10+1)]) if width else np.zeros(int(nCycles*self.Tcc/10+1))
+        for i, block in enumerate(blocks):
+            out[..., i*step:(i+1)*step+1] = block
+        return out
+
+    @property
+    def molecules(self):
+        """(6, nCycles*Tcc/10+1): concentrations of A..F downsampled to Tcc/10."""
+        return self._stack_samples(self._molecules, 6)
+
+    @property
+    def sampleTimes(self):
+        """Times of the columns of molecules."""
+        return self._stack_samples(self._times, 0)
+
     def parameterize(self,circuit,params):
         self.circuit = circuit
         parameterize_cell(self, circuit, params)
-
-    def equilibrate(self,nCycles,partition='binomial',bias=0):
-        
-        # create array to store mother states during equilibration cycles 
-        self.motherStates = np.zeros([8,nCycles])
-        
-        # create array to store molecule amounts during equilibration 
-        self.molecules = np.zeros([6,int(nCycles*self.Tcc/10+1)])
-        
-        # set partition bias if not binomial
-        if partition == 'asymmetric':
-            self.partitionBias = bias
-        
-        # run equilibration cycles 
-        for i in range(nCycles):
-            self.cellCycle(partition,i)
-        
-        self.sampleCycle()
-        print(f"Setting array size as: {self.arrSize}")
-    
 
     def inherit(self,motherCell,motherState):
         self.circuit = motherCell.circuit
@@ -107,37 +123,46 @@ class Cell:
         self.E[0] = motherState[4]
         self.F[0] = motherState[5]
 
+    def equilibrate(self,nCycles,partition='binomial',bias=0):
+        self._reset_history()
+        
+        # set partition bias if not binomial
+        if partition == 'asymmetric':
+            self.partitionBias = bias
+        
+        # run equilibration cycles 
+        for i in range(nCycles):
+            self.cellCycle(partition)
+        
+        self.sampleCycle()
+        print(f"Setting array size as: {self.arrSize}")
+
     def run(self,nCycles,partition='binomial',bias=0):
         
         # reset time 
         self.t = 0
-        
-        # create array to store mother states during equilibration cycles 
-        self.motherStates = np.zeros([8,nCycles])
-        
-        # create array to store molecule amounts over time 
-        self.molecules = np.zeros([6,int(nCycles*self.Tcc/10+1)])
+        self._reset_history()
         
         if partition == 'asymmetric':
             self.partitionBias = bias
         
         for i in range(nCycles):
-            self.cellCycle(partition,i)
-            
-            
+            self.cellCycle(partition)
 
-    def cellCycle(self,partition,cycleIndex):
-        # print(f"Running cycle {cycleIndex}")
-        self.runCycle(cycleIndex)
+    def cellCycle(self,partition='binomial'):
+        self.runCycle()
+        self.partition(partition)
 
-        # print(f"After cycle {cycleIndex}, time is {self.motherStates[0]}")
+    def partition(self,partition='binomial'):
+        """Split the end-of-cycle counts between this cell and a daughter.
+
+        This cell keeps its share (A..F) and its time is set to the end of the
+        cycle; the daughter's share is returned as [A, B, C, D, E, F].
+        """
+        motherState = self._states[-1]
         
-        # store downsampled molecules amounts 
-        # self.molcules[cycleIndex
-        
-        # set time to last divTime
-        self.t = self.motherStates[0,cycleIndex]
-        
+        # set time to end of cycle
+        self.t = motherState[0]
         
         # reset volume to 1
         self.V = 1
@@ -147,13 +172,13 @@ class Cell:
             if self.circuit=='prod_fixedB':
                 self.A = self.prodA*self.Tcc
             else:
-                self.A = self.rng.binomial(self.motherStates[2,cycleIndex],0.5)
+                self.A = self.rng.binomial(motherState[2],0.5)
             
-            self.B = self.rng.binomial(self.motherStates[3,cycleIndex],0.5)
-            self.C = self.rng.binomial(self.motherStates[4,cycleIndex],0.5)
-            self.D = self.rng.binomial(self.motherStates[5,cycleIndex],0.5)
-            self.E = self.rng.binomial(self.motherStates[6,cycleIndex],0.5)
-            self.F = self.rng.binomial(self.motherStates[7,cycleIndex],0.5)
+            self.B = self.rng.binomial(motherState[3],0.5)
+            self.C = self.rng.binomial(motherState[4],0.5)
+            self.D = self.rng.binomial(motherState[5],0.5)
+            self.E = self.rng.binomial(motherState[6],0.5)
+            self.F = self.rng.binomial(motherState[7],0.5)
         elif partition == 'perfect':
             self.A = np.array([self.A[-1]//2])
             self.B = np.array([self.B[-1]//2])
@@ -175,16 +200,17 @@ class Cell:
             else:
                 coef = 1-self.partitionBias
            
-            self.A = self.motherStates[2,cycleIndex] * coef
-            self.B = self.motherStates[3,cycleIndex] * coef
-            self.C = self.motherStates[4,cycleIndex] * coef
-            self.D = self.motherStates[5,cycleIndex] * coef
-            self.E = self.motherStates[6,cycleIndex] * coef
-            self.F = self.motherStates[7,cycleIndex] * coef
+            self.A = motherState[2] * coef
+            self.B = motherState[3] * coef
+            self.C = motherState[4] * coef
+            self.D = motherState[5] * coef
+            self.E = motherState[6] * coef
+            self.F = motherState[7] * coef
         else:
-            print('invalid partition')
-            return
+            raise ValueError(f"unknown partition '{partition}'")
 
+        mine = np.array([to_scalar(x) for x in (self.A,self.B,self.C,self.D,self.E,self.F)])
+        return np.array(motherState[2:8]) - mine
 
     def updateDivTimes(self):
         self.divTime = self.rng.normal(self.Tcc,self.varTcc)
@@ -194,7 +220,6 @@ class Cell:
             self.divTime = self.rng.normal(self.Tcc,self.varTcc)
 
         self.divTimes = np.concatenate((self.divTimes,np.array([self.divTimes[-1] + self.divTime])))
-        # print(f"updated div times to {self.divTime}")
 
     def sampleCycle(self):
         growthRate = 1/self.divTime
@@ -219,7 +244,8 @@ class Cell:
 
         print(f"Setting self.arrSize to: {self.arrSize}")
 
-    def runCycle(self,cycleIndex):
+    def runCycle(self):
+        """Simulate one cell cycle from the current state and record it."""
 
         self.updateDivTimes()
         growthRate = 1/self.divTime
@@ -248,22 +274,15 @@ class Cell:
                 self.C_array, self.D_array, self.E_array, self.F_array,
                 len(self.t_array)
             )
-        
-        # print('Array size: %i, cycle size: %i' % (self.arrSize,n))
-        
-        # print(f"At the end of cycle {cycleIndex}, t={self.t_array[n-1]}, V={self.V_array[n-1]}, A={self.A_array[n-1]}, B={self.B_array[n-1]}")
 
-        # update mother state
-        self.motherStates[0,cycleIndex] = self.t_array[n-1]
-        self.motherStates[1,cycleIndex] = self.V_array[n-1]
-        self.motherStates[2,cycleIndex] = self.A_array[n-1]
-        self.motherStates[3,cycleIndex] = self.B_array[n-1]
-        self.motherStates[4,cycleIndex] = self.C_array[n-1]
-        self.motherStates[5,cycleIndex] = self.D_array[n-1]
-        self.motherStates[6,cycleIndex] = self.E_array[n-1]
-        self.motherStates[7,cycleIndex] = self.F_array[n-1]
+        # record end-of-cycle state
+        self._states.append([
+            self.t_array[n-1], self.V_array[n-1],
+            self.A_array[n-1], self.B_array[n-1], self.C_array[n-1],
+            self.D_array[n-1], self.E_array[n-1], self.F_array[n-1],
+        ])
         
-        # update downsampled molecule tracker
+        # record downsampled molecule concentrations
         times = np.linspace(self.t_array[0],self.t_array[n-1],int(self.Tcc/10)+1)
         pos = np.searchsorted(self.t_array[:n], times)
         pos = np.clip(pos, 1, n - 1)
@@ -271,8 +290,6 @@ class Cell:
         right = self.t_array[pos]
 
         indices = np.where((times - left) <= (right - times), pos - 1, pos)
-        
-        # print(indices)
         
         molecules = np.zeros([6,len(indices)])
         molecules[0] = self.A_array[indices]/self.V_array[indices]
@@ -282,47 +299,12 @@ class Cell:
         molecules[4] = self.E_array[indices]/self.V_array[indices]
         molecules[5] = self.F_array[indices]/self.V_array[indices]
         
-        startIndex = cycleIndex*int(self.Tcc/10)
-        endIndex = (cycleIndex+1)*int(self.Tcc/10)+1
-        
-        # print('start index: %i, end index: %i' % (startIndex,endIndex))
-        
-        self.molecules[:,startIndex:endIndex] = molecules
-        
-    def reaction(self,A,B,C,D,E,F,V):
-        params = pack_params(self)
-        return step_reaction(self.circuit, A, B, C, D, E, F, V, params, self.rng)
+        self._times.append(self.t_array[indices].copy())
+        self._molecules.append(molecules)
 
     def getMotherStates(self):
         
         return self.motherStates[2::]
     
-    def getMotherStates2(self):
-        motherStates = np.zeros([5,len(self.divTimes)-1])
-        
-        divIndices = np.where(self.V > 2)[0]
-        
-        motherStates[0] = self.A[divIndices]
-        motherStates[1] = self.B[divIndices]
-        motherStates[2] = self.C[divIndices]
-        motherStates[3] = self.D[divIndices]
-        motherStates[4] = self.E[divIndices]
-        
-        return motherStates
-
-    def getIntegerTimes(self):
-        print(f"Getting integer times, self.motherStates: {self.motherStates[0]}")
-        times = self.motherStates[0].astype(int)
-        print(f"Times are: {times}")
-
-        print(f"self.A: {self.A}")
-
-        return times
-
-        # t_repeat = np.repeat(self.t[:,np.newaxis],len(times),axis=1)
-        
-        # return np.argmin(abs(np.subtract(t_repeat,times)),axis=0)
-        
     def getMolecules(self):
-       
         return self.molecules
