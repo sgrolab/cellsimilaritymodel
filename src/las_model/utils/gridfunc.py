@@ -5,7 +5,6 @@ import matplotlib.animation as animation
 from matplotlib import pyplot as plt 
 import cv2, cmapy
 from datetime import datetime
-from scipy import stats 
 import math
 from las_model.utils.cell import Cell
 
@@ -491,6 +490,16 @@ class Grid:
         
     
     def calcWeightMatrix(self,neighborsize,frame,shape):
+        """Spatial weights between every pair of cells present at time frame.
+
+        The neighborhood of a cell is, by shape:
+          discdist  the disc of Euclidean radius neighborsize, weight 1
+          discstep  the disc of Manhattan radius neighborsize, weight 1
+          donut     the ring at exactly Manhattan distance neighborsize, weight 1
+          gausdist  the Euclidean disc, weighted by a Gaussian of the distance with sigma neighborsize
+          gausstep  the Manhattan disc, weighted the same way
+        A cell is never its own neighbor.
+        """
         dataIndex = np.where(self.timepoints - frame > 0)[0][0]-1
         
         # get locations of cells
@@ -499,32 +508,42 @@ class Grid:
         # allocate weight matrix 
         w = np.zeros((np.size(cellLocs,1),np.size(cellLocs,1)))
 
+        # Gaussian weight of a distance: the normal pdf with sigma neighborsize, in closed form
+        # because scipy's norm.pdf costs ~20 us per scalar call
+        scale = 1 / (neighborsize * math.sqrt(2 * math.pi))
+        def gauss(dist):
+            return scale * math.exp(-0.5 * (dist / neighborsize) ** 2)
+
         # set weight matrix
         for i in range(len(cellLocs[0])):
             for j in range(len(cellLocs[0])):
+                if i == j:      # a cell is not its own neighbor
+                    continue
                 y1,x1 = cellLocs[0][i],cellLocs[1][i]
                 y2,x2 = cellLocs[0][j],cellLocs[1][j]
                 
                 if shape == 'discdist':
-                    dist = np.sqrt((y1-y2)**2+(x1-x2)**2)
-                    if i!= j and dist <= neighborsize:
+                    dist = math.hypot(y1-y2, x1-x2)
+                    if dist <= neighborsize:
                         w[i,j] = 1
                 elif shape == 'discstep':
-                    dist = np.sqrt((y1-y2)**2)+np.sqrt((x1-x2)**2)
-                    if i!= j and dist <= neighborsize:
+                    dist = abs(y1-y2)+abs(x1-x2)
+                    if dist <= neighborsize:
                         w[i,j] = 1
                 elif shape == 'donut':
-                    dist = np.sqrt((y1-y2)**2)+np.sqrt((x1-x2)**2)
-                    if i!= j and dist == neighborsize:
+                    dist = abs(y1-y2)+abs(x1-x2)
+                    if dist == neighborsize:
                         w[i,j] = 1
                 elif shape == 'gausdist':
-                    dist = np.sqrt((y1-y2)**2+(x1-x2)**2)
-                    if i!= j and dist == neighborsize:
-                        w[i,j] = stats.norm.pdf(dist,0,neighborsize)
+                    dist = math.hypot(y1-y2, x1-x2)
+                    if dist <= neighborsize:
+                        w[i,j] = gauss(dist)
+                elif shape == 'gausstep':
+                    dist = abs(y1-y2)+abs(x1-x2)
+                    if dist <= neighborsize:
+                        w[i,j] = gauss(dist)
                 else:
-                    dist = np.sqrt((y1-y2)**2)+np.sqrt((x1-x2)**2)
-                    if i!= j and dist == neighborsize:
-                        w[i,j] = stats.norm.pdf(dist,0,neighborsize)
+                    raise ValueError(f"unknown shape '{shape}'")
         
         return w
     
