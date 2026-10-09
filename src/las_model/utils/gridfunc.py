@@ -9,8 +9,8 @@ from scipy import stats
 
 
 class Grid:
-    def __init__(self,ysize,xsize,maxCells,rng=None):
-        self.rng = rng if rng is not None else np.random.default_rng(seed=1000)
+    def __init__(self,ysize,xsize,maxCells,rng):
+        self.rng = rng
         self.xsize = xsize
         self.ysize = ysize
         self.maxCells = maxCells
