@@ -31,11 +31,12 @@ for seed in metadata['seeds']:
 
     print(f"Simulating grid for seed = {seed}")
 
-    # Pin random seed (gridfunc draws from its module-level rng)
-    gf.rng = np.random.default_rng(seed=seed)
+    # Pin random seed. The seed itself is the swept variable here, so it is used directly
+    # rather than drawn from a master rng.
+    rng = np.random.default_rng(seed=seed)
 
     # Initiate, seed and run grid
-    grid = gf.Grid(metadata['gridSize'],metadata['gridSize'],metadata['maxCells'])
+    grid = gf.Grid(metadata['gridSize'],metadata['gridSize'],metadata['maxCells'],rng)
     grid.seed(metadata['circuit'],[metadata['PprodA'],metadata['kcatA'],metadata['kcatB']],metadata['Tcc'],metadata['varTcc'])
     grid.run()
 

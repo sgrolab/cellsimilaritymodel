@@ -7,10 +7,10 @@ import copy, cv2, cmapy
 from datetime import datetime
 from scipy import stats 
 
-rng = np.random.default_rng(seed=1000)
 
 class Grid:
-    def __init__(self,ysize,xsize,maxCells):
+    def __init__(self,ysize,xsize,maxCells,rng=None):
+        self.rng = rng if rng is not None else np.random.default_rng(seed=1000)
         self.xsize = xsize
         self.ysize = ysize
         self.maxCells = maxCells
@@ -19,7 +19,7 @@ class Grid:
         self.Cells = []
         
     def seed(self,circuit,params,Tcc,varTcc):
-        starterCell = Cell(1,self.ysize//2,self.xsize//2,Tcc,varTcc,0)
+        starterCell = Cell(1,self.ysize//2,self.xsize//2,Tcc,varTcc,0,self.rng)
         starterCell.parameterize(circuit,params)
         starterCell.lineage = [starterCell.ID]
         starterCell.runCycle()
@@ -59,7 +59,7 @@ class Grid:
                     self.moveCells(repDir,motherCell,i)
                 
                 # replicate cell 
-                daughterCell = Cell(len(self.Cells)+1,repLoc[0],repLoc[1],motherCell.Tcc,motherCell.varTcc,divTime)
+                daughterCell = Cell(len(self.Cells)+1,repLoc[0],repLoc[1],motherCell.Tcc,motherCell.varTcc,divTime,self.rng)
                 daughterCell.inherit(motherCell)
                 
                 # update daughter cell 
@@ -402,7 +402,7 @@ class Grid:
         minDirs = np.where(dirCells==np.min(dirCells))[0]
         
         # return random minimum value
-        return minDirs[rng.integers(len(minDirs))]
+        return minDirs[self.rng.integers(len(minDirs))]
                 
     def getRepLoc(self,motherCell,repDir):
         
@@ -544,13 +544,14 @@ class Grid:
     
         
 class Cell:
-    def __init__(self,number,yloc,xloc,Tcc,varTcc,t):
+    def __init__(self,number,yloc,xloc,Tcc,varTcc,t,rng):
+        self.rng = rng
         self.ID = number
         self.yloc = yloc
         self.xloc = xloc
         self.Tcc = Tcc
         self.varTcc = varTcc
-        self.divTime = int(rng.normal(self.Tcc,self.varTcc))
+        self.divTime = int(self.rng.normal(self.Tcc,self.varTcc))
         self.divTimes = np.array([self.divTime]) + t
         self.lineage = []
         self.prodA = 0
@@ -710,11 +711,11 @@ class Cell:
         
         if partition == 'binomial':
             self.V = np.concatenate((self.V,np.array([1])))
-            self.A = np.concatenate((self.A,np.array([rng.binomial(self.A[-1],0.5)])))
-            self.B = np.concatenate((self.B,np.array([rng.binomial(self.B[-1],0.5)])))
-            self.C = np.concatenate((self.C,np.array([rng.binomial(self.C[-1],0.5)])))
-            self.D = np.concatenate((self.D,np.array([rng.binomial(self.D[-1],0.5)])))
-            self.E = np.concatenate((self.E,np.array([rng.binomial(self.E[-1],0.5)])))
+            self.A = np.concatenate((self.A,np.array([self.rng.binomial(self.A[-1],0.5)])))
+            self.B = np.concatenate((self.B,np.array([self.rng.binomial(self.B[-1],0.5)])))
+            self.C = np.concatenate((self.C,np.array([self.rng.binomial(self.C[-1],0.5)])))
+            self.D = np.concatenate((self.D,np.array([self.rng.binomial(self.D[-1],0.5)])))
+            self.E = np.concatenate((self.E,np.array([self.rng.binomial(self.E[-1],0.5)])))
         elif partition == 'perfect':
             self.V = np.concatenate((self.V,np.array([1])))
             self.A = np.concatenate((self.A,np.array([self.A[-1]//2])))
@@ -723,7 +724,7 @@ class Cell:
             self.D = np.concatenate((self.D,np.array([self.D[-1]//2])))
             self.E = np.concatenate((self.E,np.array([self.E[-1]//2])))
         elif partition == 'correlated':
-            coef = rng.normal(0.5,0.1)
+            coef = self.rng.normal(0.5,0.1)
             self.V = np.concatenate((self.V,np.array([1])))
             self.A = np.concatenate((self.A,np.array([int(self.A[-1]*coef)])))
             self.B = np.concatenate((self.B,np.array([int(self.B[-1]*coef)])))
@@ -795,7 +796,7 @@ class Cell:
             Rtot = prodA
             
             # generate random numbers
-            r1 = rng.uniform()
+            r1 = self.rng.uniform()
             
             # calculate time step
             tau = 1/Rtot*np.log(1/r1)
@@ -817,8 +818,8 @@ class Cell:
             Rtot = prodA + prodB + prodC
             
             # generate random numbers
-            r1 = rng.uniform()
-            r2 = rng.uniform() * Rtot
+            r1 = self.rng.uniform()
+            r2 = self.rng.uniform() * Rtot
             
             # calculate time step
             tau = 1/Rtot*np.log(1/r1)
@@ -845,8 +846,8 @@ class Cell:
             Rtot = self.prodA + prodB
             
             # generate random numbers
-            r1 = rng.uniform()
-            r2 = rng.uniform() * Rtot
+            r1 = self.rng.uniform()
+            r2 = self.rng.uniform() * Rtot
             
             # calculate time step
             tau = 1/Rtot*np.log(1/r1)
@@ -869,8 +870,8 @@ class Cell:
             Rtot = prodA + prodB + prodC
             
             # generate random numbers
-            r1 = rng.uniform()
-            r2 = rng.uniform() * Rtot
+            r1 = self.rng.uniform()
+            r2 = self.rng.uniform() * Rtot
             
             # calculate time step
             tau = 1/Rtot*np.log(1/r1)
@@ -896,8 +897,8 @@ class Cell:
             Rtot = prodA + prodB + prodC
             
             # generate random numbers
-            r1 = rng.uniform()
-            r2 = rng.uniform() * Rtot
+            r1 = self.rng.uniform()
+            r2 = self.rng.uniform() * Rtot
             
             # calculate time step
             tau = 1/Rtot*np.log(1/r1)
@@ -924,8 +925,8 @@ class Cell:
             Rtot = prodA + prodB + prodC + degC
             
             # generate random numbers
-            r1 = rng.uniform()
-            r2 = rng.uniform() * Rtot
+            r1 = self.rng.uniform()
+            r2 = self.rng.uniform() * Rtot
             
             # calculate time step
             tau = 1/Rtot*np.log(1/r1)
@@ -954,8 +955,8 @@ class Cell:
             Rtot = prodA + prodB + prodC + prodD
             
             # generate random numbers
-            r1 = rng.uniform()
-            r2 = rng.uniform() * Rtot
+            r1 = self.rng.uniform()
+            r2 = self.rng.uniform() * Rtot
             
             # calculate time step
             tau = 1/Rtot*np.log(1/r1)
@@ -990,8 +991,8 @@ class Cell:
             Rtot = prodA + prodB + prodC + prodD
             
             # generate random numbers
-            r1 = rng.uniform()
-            r2 = rng.uniform() * Rtot
+            r1 = self.rng.uniform()
+            r2 = self.rng.uniform() * Rtot
             
             # calculate time step
             tau = 1/Rtot*np.log(1/r1)
@@ -1023,8 +1024,8 @@ class Cell:
             Rtot = prodA + prodB + prodC + degC + prodD
             
             # generate random numbers
-            r1 = rng.uniform()
-            r2 = rng.uniform() * Rtot
+            r1 = self.rng.uniform()
+            r2 = self.rng.uniform() * Rtot
             
             # calculate time step
             tau = 1/Rtot*np.log(1/r1)
@@ -1057,8 +1058,8 @@ class Cell:
             Rtot = prodA + prodB + prodC + prodD + prodE
             
             # generate random numbers
-            r1 = rng.uniform()
-            r2 = rng.uniform() * Rtot
+            r1 = self.rng.uniform()
+            r2 = self.rng.uniform() * Rtot
             
             # calculate time step
             tau = 1/Rtot*np.log(1/r1)
@@ -1083,7 +1084,7 @@ class Cell:
         return A_array,B_array,C_array,D_array,E_array,tau
     
     def updateDivTimes(self):
-        self.divTime = int(rng.normal(self.Tcc,self.varTcc))
+        self.divTime = int(self.rng.normal(self.Tcc,self.varTcc))
         self.divTimes = np.concatenate((self.divTimes,np.array([self.divTimes[-1] + self.divTime])))
         
     def updateLineage(self):
