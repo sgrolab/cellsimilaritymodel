@@ -1,7 +1,7 @@
 # Saturated Production sweep PprodA
 from datetime import datetime
 import numpy as np
-from las_model.utils import motiffunc as mf
+from las_model.utils.cell import Cell
 from las_model.utils.config import PROJECT_DIR
 from las_model.utils.output import save_experiment
 from las_model.utils.parallel import run_pool
@@ -29,7 +29,7 @@ def _simulate_single_pprod(task_args):
 
     print(f"Simulating for PprodAindex={PprodAindex}, PprodA={PprodA}")
 
-    motherCell = mf.Cell(meta['Tcc'], meta['varTcc'], task_rng)
+    motherCell = Cell(meta['Tcc'], meta['varTcc'], task_rng)
     motherCell.parameterize(meta['circuit'], [PprodA, meta['kcatA']])
     motherCell.equilibrate(meta['nCells_equilibrium'])
     motherCell.run(meta['nCells'])
