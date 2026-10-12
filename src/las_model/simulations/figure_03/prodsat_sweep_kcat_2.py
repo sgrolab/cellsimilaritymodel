@@ -18,7 +18,7 @@ metadata = {
     'varTcc': 0,
     'circuit': 'prodsat',
     'PprodA': 10**-1,
-    'kcats': list(np.logspace(-3,0,7)),
+    'kcats': list(np.logspace(-3,3,13)),
 }
 
 # Pin random seed 
