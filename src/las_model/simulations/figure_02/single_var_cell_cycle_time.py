@@ -12,7 +12,7 @@ metadata = {
     'experiment_directory': 'varTcc',
     'created': datetime.now().isoformat(),
     'seed': 1000,
-    'nCells': 1000,
+    'nCells': 10000,
     'nCells_equilibrium': 10,
     'Tcc': 1000,
     'varTccs': list(np.logspace(0,3,11)),
