@@ -6,6 +6,8 @@ so the semantics are exactly those of running it by hand. Without arguments ever
 run except those listed in EXCLUDE; name folders or scripts to run a subset. The data
 directory is the one the scripts normally use (ROOT_DIR from the environment or .env), or
 the one given with --root-dir.
+
+kill with `pkill -9 -f simulations`
 """
 import argparse
 import os
