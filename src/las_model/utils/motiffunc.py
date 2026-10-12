@@ -2,7 +2,7 @@
 
 import numpy as np 
 import math
-from las_model.utils.gillespie_numba import run_cycle_numba, pack_params, to_scalar, step_reaction
+from las_model.utils.gillespie_numba import Circuit, run_cycle_numba, pack_params, to_scalar, step_reaction
 from las_model.utils.parameterize import parameterize_cell
 
 class Cell:
@@ -60,6 +60,7 @@ class Cell:
         
     def parameterize(self,circuit,params):
         self.circuit = circuit
+        self.circuit_code = Circuit[circuit]
         parameterize_cell(self, circuit, params)
 
     def equilibrate(self,nCycles,partition='binomial',bias=0):
@@ -84,6 +85,7 @@ class Cell:
 
     def inherit(self,motherCell,motherState):
         self.circuit = motherCell.circuit
+        self.circuit_code = motherCell.circuit_code
         if self.arrSize != motherCell.arrSize:
             self.arrSize = motherCell.arrSize
             self._init_buffers()
@@ -144,7 +146,7 @@ class Cell:
         
         if partition == 'binomial':
             
-            if self.circuit=='prod_fixedB':
+            if self.circuit_code==Circuit.prod_fixedB:
                 self.A = self.prodA*self.Tcc
             else:
                 self.A = self.rng.binomial(self.motherStates[2,cycleIndex],0.5)
@@ -200,7 +202,7 @@ class Cell:
         growthRate = 1/self.divTime
         params = pack_params(self)
         n, _, _, _, _, _, _, _, _, overflow = run_cycle_numba(
-            self.circuit,
+            self.circuit_code,
             to_scalar(self.A), to_scalar(self.B), to_scalar(self.C),
             to_scalar(self.D), to_scalar(self.E), to_scalar(self.F),
             to_scalar(self.V), to_scalar(self.t),
@@ -226,7 +228,7 @@ class Cell:
         params = pack_params(self)
 
         n, _, _, _, _, _, _, _, _, overflow = run_cycle_numba(
-            self.circuit,
+            self.circuit_code,
             to_scalar(self.A), to_scalar(self.B), to_scalar(self.C),
             to_scalar(self.D), to_scalar(self.E), to_scalar(self.F),
             to_scalar(self.V), to_scalar(self.t),
@@ -239,7 +241,7 @@ class Cell:
             self.arrSize *= 2
             self._init_buffers()
             n, _, _, _, _, _, _, _, _, overflow = run_cycle_numba(
-                self.circuit,
+                self.circuit_code,
                 to_scalar(self.A), to_scalar(self.B), to_scalar(self.C),
                 to_scalar(self.D), to_scalar(self.E), to_scalar(self.F),
                 to_scalar(self.V), to_scalar(self.t),
@@ -291,7 +293,7 @@ class Cell:
         
     def reaction(self,A,B,C,D,E,F,V):
         params = pack_params(self)
-        return step_reaction(self.circuit, A, B, C, D, E, F, V, params, self.rng)
+        return step_reaction(self.circuit_code, A, B, C, D, E, F, V, params, self.rng)
 
     def getMotherStates(self):
         

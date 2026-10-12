@@ -6,13 +6,17 @@ Sets circuit rate constants and initial molecule counts on a Cell instance.
 
 import numpy as np
 
+from las_model.utils.gillespie_numba import Circuit
+
 
 def parameterize_cell(cell, circuit, params):
-    if circuit == 'single':
+    code = Circuit[circuit]
+
+    if code == Circuit.single:
         cell.prodA = params[0]
         cell.A[0] = cell.prodA * cell.Tcc
 
-    elif circuit == 'pos_fb':
+    elif code == Circuit.pos_fb:
         cell.prodA = params[0]
         cell.k1 = params[1]
         cell.k2 = params[2]
@@ -20,14 +24,14 @@ def parameterize_cell(cell, circuit, params):
 
         cell.A[0] = cell.prodA + cell.k1 * cell.Tcc
 
-    elif circuit == 'neg_fb':
+    elif code == Circuit.neg_fb:
         cell.k1 = params[0]
         cell.k2 = params[1]
         cell.k3 = params[2]
 
         cell.A[0] = cell.prodA * cell.Tcc - cell.k1 * cell.Tcc
 
-    elif circuit == 'bind':
+    elif code == Circuit.bind:
         cell.prodA = params[0]
         cell.prodB = params[1]
         cell.k1 = params[2]
@@ -35,7 +39,7 @@ def parameterize_cell(cell, circuit, params):
         cell.A[0] = cell.prodA * cell.Tcc
         cell.B[0] = cell.prodB * cell.Tcc
 
-    elif circuit == 'bind2':
+    elif code == Circuit.bind2:
         cell.prodA = params[0]
         cell.prodB = params[1]
         cell.k1 = params[2]/(cell.prodA*cell.prodB*cell.Tcc**2)
@@ -43,7 +47,7 @@ def parameterize_cell(cell, circuit, params):
         cell.A[0] = cell.prodA * cell.Tcc
         cell.B[0] = cell.prodB * cell.Tcc
 
-    elif circuit == 'revbind':
+    elif code == Circuit.revbind:
         cell.prodA = params[0]
         cell.prodB = params[1]
         cell.k1 = params[2]/(cell.prodA*cell.prodB*cell.Tcc**2)
@@ -53,14 +57,14 @@ def parameterize_cell(cell, circuit, params):
         cell.B[0] = cell.prodB * cell.Tcc
         cell.C[0] = 0
 
-    elif circuit == 'prodsat':
+    elif code == Circuit.prodsat:
         cell.prodA = params[0]
         cell.k1 = params[1]
 
         cell.A[0] = cell.prodA * cell.Tcc
         cell.B[0] = 3/2 * cell.prodA * cell.k1 * cell.Tcc**2
 
-    elif circuit == 'prodsat_burst':
+    elif code == Circuit.prodsat_burst:
         cell.prodA = params[0]
         cell.k1 = params[1]
         cell.burstSize = params[2]
@@ -68,7 +72,7 @@ def parameterize_cell(cell, circuit, params):
         cell.A[0] = cell.prodA * cell.burstSize * cell.Tcc
         cell.B[0] = 3/2 * cell.prodA * cell.burstSize * cell.k1 * cell.Tcc**2
 
-    elif circuit == 'produnsat':
+    elif code == Circuit.produnsat:
         cell.prodA = params[0]
         cell.prodB = params[1]
         cell.k1 = params[2]
@@ -82,7 +86,7 @@ def parameterize_cell(cell, circuit, params):
         cell.B[0] = Ai
         cell.C[0] = Bi - cell.A[0]
 
-    elif circuit == 'prod_fixedB':
+    elif code == Circuit.prod_fixedB:
         cell.prodA = params[0]
         cell.prodB = params[1]
         cell.k1 = params[2]
@@ -92,7 +96,7 @@ def parameterize_cell(cell, circuit, params):
         cell.B[0] = int(cell.prodB * cell.Tcc)
         cell.C[0] = int(4* cell.k1 * cell.Tcc * cell.prodA * cell.Tcc * cell.prodB * cell.Tcc / (cell.k2+cell.prodA * cell.Tcc * cell.prodB * cell.Tcc))
 
-    elif circuit =='cascade':
+    elif code == Circuit.cascade:
         cell.prodA = params[0]
         cell.k1 = params[1]
         cell.k2 = params[2]
@@ -101,7 +105,7 @@ def parameterize_cell(cell, circuit, params):
         cell.B[0] = 3/2 * cell.prodA * cell.k1 * cell.Tcc**2
         cell.C[0] = 3/2 * 3/2 * cell.prodA * cell.k1 * cell.k2 * cell.Tcc**3
 
-    elif circuit == 'proddeg':
+    elif code == Circuit.proddeg:
         cell.prodA = params[0]
         cell.prodB = params[1]
         cell.k1 = params[2]
@@ -112,13 +116,13 @@ def parameterize_cell(cell, circuit, params):
         cell.B[0] = cell.prodB * cell.Tcc
         cell.C[0] = cell.k3
 
-    elif circuit == 'phos':
+    elif code == Circuit.phos:
         cell.prodA = params[0]
         cell.prodB = params[1]
         cell.k1 = params[2]
         cell.k2 = params[3]
 
-    elif circuit == 'phos_int':
+    elif code == Circuit.phos_int:
         cell.prodA = params[0]
         cell.prodB = params[1]
         cell.k1 = params[2]
@@ -128,7 +132,7 @@ def parameterize_cell(cell, circuit, params):
         cell.A[0] = cell.prodA * cell.Tcc
         cell.C[0] = cell.prodB * cell.Tcc
 
-    elif circuit == 'phos_cycle':
+    elif code == Circuit.phos_cycle:
         cell.prodA = params[0]
         cell.prodB = params[1]
         cell.prodC = params[2]
@@ -140,7 +144,7 @@ def parameterize_cell(cell, circuit, params):
         cell.C[0] = cell.prodC * cell.Tcc
         cell.D[0] = cell.prodB * cell.Tcc -  cell.B[0]
 
-    elif circuit == 'phos_sat':
+    elif code == Circuit.phos_sat:
         cell.prodA = params[0]
         cell.k1 = params[1]
         cell.k2 = params[2]
@@ -154,7 +158,7 @@ def parameterize_cell(cell, circuit, params):
         cell.C[0] = cell.prodC * cell.Tcc
         cell.D[0] = cell.prodB * cell.Tcc -  cell.B[0]
 
-    elif circuit == 'phos2':
+    elif code == Circuit.phos2:
         cell.prodA = params[0]
         cell.prodB = params[1]
         cell.k1 = params[2]
@@ -169,7 +173,7 @@ def parameterize_cell(cell, circuit, params):
         cell.A[0] = cell.prodA * cell.Tcc
         cell.C[0] = cell.prodB * cell.Tcc
 
-    elif circuit == 'diffTF':
+    elif code == Circuit.diffTF:
         cell.prodA = params[0]
         cell.prodB = params[1]
         cell.k1 = params[2]/(cell.prodA*cell.prodB*cell.Tcc**2)
@@ -180,7 +184,7 @@ def parameterize_cell(cell, circuit, params):
         cell.C[0] = cell.prodA * cell.Tcc / 2
         cell.D[0] = cell.C[0] * cell.k2 * cell.Tcc
 
-    elif circuit == 'cdg':
+    elif code == Circuit.cdg:
         cell.prodA = params[0]
         cell.prodB = params[1]
         cell.k1 = params[2]
@@ -193,7 +197,7 @@ def parameterize_cell(cell, circuit, params):
         cell.C[0] = cell.k3
         cell.D[0] = cell.C[0] * cell.k4 * cell.Tcc
 
-    elif circuit == 'cascade6':
+    elif code == Circuit.cascade6:
         cell.prodA = params[0]
         cell.k1 = params[1]
         cell.k2 = params[2]
@@ -208,7 +212,7 @@ def parameterize_cell(cell, circuit, params):
         cell.E[0] = cell.D[0] * (3/2*cell.k4*cell.Tcc)
         cell.F[0] = cell.E[0] * (3/2*cell.k5*cell.Tcc)
 
-    elif circuit =='crazyCascade':
+    elif code == Circuit.crazyCascade:
         cell.prodA = params[0]      # PprodA
         cell.k1 = params[1]         # kcatA
         cell.prodB = params[2]      # PprodC
