@@ -13,7 +13,7 @@ metadata = {
     'experiment_directory': 'burstSize',
     'created': datetime.now().isoformat(),
     'seed': 1000,
-    'nCells': 1000,
+    'nCells': 10000,
     'nCycles_equilibrium': 10,
     'Tcc': 1000,
     'circuit': 'prodsat_burst',
