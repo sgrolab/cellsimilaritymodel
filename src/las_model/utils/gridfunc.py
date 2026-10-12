@@ -9,11 +9,11 @@ import math
 from las_model.utils.cell import Cell
 
 class Grid:
-    def __init__(self,ysize,xsize,maxCells,rng=None):
+    def __init__(self,ysize,xsize,maxCells,rng):
         self.xsize = xsize
         self.ysize = ysize
         self.maxCells = maxCells
-        self.rng = rng if rng is not None else np.random.default_rng(seed=1000)
+        self.rng = rng
         self.timepoints = np.zeros(maxCells)
         self.data = np.zeros([maxCells,ysize,xsize])
         self.Cells = []
