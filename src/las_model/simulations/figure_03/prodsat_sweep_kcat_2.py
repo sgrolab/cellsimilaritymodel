@@ -36,11 +36,9 @@ def _simulate_single_kcat(task_args):
 
     # Get mother states and calculate division differences
     divStates = motherCell.getMotherStates()
-    dsis, drnd, vardsis, vardrnd, normvar = calculate_division_differences(divStates, task_rng)
+    _, _, vardsis, vardrnd, normvar = calculate_division_differences(divStates, task_rng)
 
     return {
-        'dsis': dsis,
-        'drnd': drnd,
         'vardsis': vardsis,
         'vardrnd': vardrnd,
         'normvar': normvar,

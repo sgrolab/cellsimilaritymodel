@@ -50,13 +50,11 @@ def _simulate_single_kcat(task_args):
     motherCell.run(meta['nCells'])
 
     # num_workers=1 prevents nested multiprocessing inside workers
-    dsis, drnd, vardsis, vardrnd, normvar = calculate_offspring_similarity_time(
+    _, _, vardsis, vardrnd, normvar = calculate_offspring_similarity_time(
         motherCell, meta, task_rng, num_workers=1
     )
 
     return {
-        'dsis': dsis,
-        'drnd': drnd,
         'vardsis': vardsis,
         'vardrnd': vardrnd,
         'normvar': normvar,

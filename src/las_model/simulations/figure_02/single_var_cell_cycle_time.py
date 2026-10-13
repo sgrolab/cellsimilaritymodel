@@ -25,8 +25,6 @@ rng = np.random.default_rng(seed=metadata['seed'])
 
 # Accumulate results 
 results = {
-    'dsis': [],
-    'drnd': [],
     'vardsis': [],
     'vardrnd': [],
     'normvar': [],
@@ -46,11 +44,9 @@ for varTcc in metadata['varTccs']:
 
     # Get mother states and calculate division differences
     divStates = motherCell.getMotherStates()
-    dsis, drnd, vardsis, vardrnd, normvar = calculate_division_differences(divStates, rng)
+    _, _, vardsis, vardrnd, normvar = calculate_division_differences(divStates, rng)
 
     # Append to results 
-    results['dsis'].append(dsis)
-    results['drnd'].append(drnd)
     results['vardsis'].append(vardsis)
     results['vardrnd'].append(vardrnd)
     results['normvar'].append(normvar)

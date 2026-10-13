@@ -35,12 +35,10 @@ motherCell.run(metadata['nCells'])
 
 # Simulate offspring, then pairwise differences and correlations over time 
 sis1, sis2, rnd1 = simulate_offspring_time(motherCell,metadata,rng)
-dsis, drnd, vardsis, vardrnd, normvar = calculate_offspring_differences(sis1, sis2, rnd1)
+_, _, vardsis, vardrnd, normvar = calculate_offspring_differences(sis1, sis2, rnd1)
 rsis, rrnd = calculate_offspring_correlation_time(sis1, sis2, rnd1)
 
 results = {
-    'dsis': dsis,
-    'drnd': drnd,
     'vardsis': vardsis,
     'vardrnd': vardrnd,
     'normvar': normvar,
