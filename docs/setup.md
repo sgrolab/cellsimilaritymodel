@@ -87,7 +87,7 @@ uv run src/las_model/figures/plot_figures.py figure_02 figure_S04     # just the
 uv run src/las_model/figures/plot_figures.py --save figs --format pdf --dpi 300
 uv run src/las_model/figures/plot_figures.py --help
 ```
-Each figure is a function, `figure_01` ... `figure_S21`, so in Spyder or VS Code (with the interpreter set to `.venv/bin/python`, or `.venv\Scripts\python.exe` on Windows) you can run the file to define them and then call one, e.g. `figure_02()`, from the console. A figure whose data has not been generated yet is reported as failed and the others still run.
+Each figure is a function, `figure_01` ... `figure_S24`, so in Spyder or VS Code (with the interpreter set to `.venv/bin/python`, or `.venv\Scripts\python.exe` on Windows) you can run the file to define them and then call one, e.g. `figure_02()`, from the console. A figure whose data has not been generated yet is reported as failed and the others still run.
 
 ### Roboto Font (optional)
 The figure script labels its panels with the Roboto font. If Roboto is not installed, matplotlib falls back to DejaVu Sans and prints a warning for every label:
