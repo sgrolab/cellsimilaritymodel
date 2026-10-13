@@ -32,13 +32,11 @@ def _simulate_single_pprodA_pprodB(task_args):
         PprodA, PprodB, meta['kcatA'], meta['Km'], meta['Tcc'], meta['nCells'], task_rng)
 
     # Division differences from the mother states 
-    dsis, drnd, vardsis, vardrnd, normvar = calculate_division_differences(motherMolecules, task_rng)
+    _, _, vardsis, vardrnd, normvar = calculate_division_differences(motherMolecules, task_rng)
 
     return {
         'means': means,
         'variances': variances,
-        'dsis': dsis,
-        'drnd': drnd,
         'vardsis': vardsis,
         'vardrnd': vardrnd,
         'normvar': normvar,

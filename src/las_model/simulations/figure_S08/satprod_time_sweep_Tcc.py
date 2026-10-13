@@ -29,8 +29,6 @@ rng = np.random.default_rng(seed=metadata['seed'])
 
 # Accumulate results 
 results = {
-    'dsis': [],
-    'drnd': [],
     'vardsis': [],
     'vardrnd': [],
     'normvar': [],
@@ -48,11 +46,9 @@ for Tcc in metadata['Tccs']:
     motherCell.run(metadata['nCells'])
 
     # Calculate offspring similarity; the offspring run with this iteration's Tcc 
-    dsis, drnd, vardsis, vardrnd, normvar = calculate_offspring_similarity_time(motherCell,{**metadata, 'Tcc': Tcc},rng)
+    _, _, vardsis, vardrnd, normvar = calculate_offspring_similarity_time(motherCell,{**metadata, 'Tcc': Tcc},rng)
 
     # append results 
-    results['dsis'].append(dsis)
-    results['drnd'].append(drnd)
     results['vardsis'].append(vardsis)
     results['vardrnd'].append(vardrnd)
     results['normvar'].append(normvar)
