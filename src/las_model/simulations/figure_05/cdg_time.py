@@ -33,8 +33,6 @@ rng = np.random.default_rng(seed=metadata['seed'])
 
 # Accumulate results
 results = {
-    'dsis': [],
-    'drnd': [],
     'vardrnd': [],
     'vardsis': [],
     'normvar': []
@@ -48,11 +46,9 @@ motherCell.run(metadata['nCells'])
 
 # Get mother states and calculate division differences 
 divStates = motherCell.getMotherStates()
-dsis, drnd, vardsis, vardrnd, normvar = calculate_offspring_similarity_time(motherCell,metadata,rng)
+_, _, vardsis, vardrnd, normvar = calculate_offspring_similarity_time(motherCell,metadata,rng)
 
 # Store results
-results['dsis'].append(dsis)
-results['drnd'].append(drnd)
 results['vardrnd'].append(vardrnd)
 results['vardsis'].append(vardsis)
 results['normvar'].append(normvar)
