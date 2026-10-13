@@ -50,7 +50,7 @@ def _simulate_single_pprodA_pprodB(task_args):
 
     # Get mother states and calculate division differences
     divStates = motherCell.getMotherStates()
-    dsis, drnd, vardsis, vardrnd, normvar = calculate_division_differences(divStates, task_rng)
+    _, _, vardsis, vardrnd, normvar = calculate_division_differences(divStates, task_rng)
 
     # Get molecule amounts 
     molecules = motherCell.getMolecules()
@@ -60,8 +60,6 @@ def _simulate_single_pprodA_pprodB(task_args):
     return {
         'means': means,
         'variances': variances,
-        'dsis': dsis,
-        'drnd': drnd,
         'vardsis': vardsis,
         'vardrnd': vardrnd,
         'normvar': normvar,

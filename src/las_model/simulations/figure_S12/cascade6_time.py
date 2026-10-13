@@ -39,11 +39,9 @@ motherCell.run(metadata['nCells'])
 
 # Get mother states and calculate division differences 
 divStates = motherCell.getMotherStates()
-dsis, drnd, vardsis, vardrnd, normvar = calculate_offspring_similarity_time(motherCell,metadata,rng)
+_, _, vardsis, vardrnd, normvar = calculate_offspring_similarity_time(motherCell,metadata,rng)
 
 results = {
-    'dsis': dsis,
-    'drnd': drnd,
     'vardsis': vardsis,
     'vardrnd': vardrnd,
     'normvar': normvar

@@ -26,8 +26,6 @@ rng = np.random.default_rng(metadata['seed'])
 
 # Accumulate results 
 results = {
-    'dsis': [],
-    'drnd': [],
     'vardsis': [],
     'vardrnd': [],
     'normvar': [],
@@ -46,10 +44,7 @@ for kcatA in metadata['kcats']:
 
     # Get mother states and calculate division differences 
     divStates = motherCell.getMotherStates()
-    dsis, drnd, vardsis, vardrnd, normvar = calculate_division_differences(divStates,rng)
-
-    results['dsis'].append(dsis)
-    results['drnd'].append(drnd)
+    _, _, vardsis, vardrnd, normvar = calculate_division_differences(divStates,rng)
     results['vardsis'].append(vardsis)
     results['vardrnd'].append(vardrnd)
     results['normvar'].append(normvar)
