@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Draw the main and supplementary figures of the paper from the simulation outputs.
 
-Each figure is a function, figure_01 ... figure_S21, that reads the pickles the simulation
+Each figure is a function, figure_01 ... figure_S24, that reads the pickles the simulation
 scripts wrote and lays out the panels. Without arguments every figure is drawn, in order; name
 figures to draw a subset. Without --save each figure opens in a window and the next one is
 drawn when it is closed; with --save they are written to DIR/<figure>.<format> instead, without
@@ -2838,6 +2838,95 @@ def figure_S21():
     show_or_save('figure_S21')
 
 
+def figure_S22():
+    # Figure S22 (Scrambled Inheritance): pull data
+
+    with open(PROJECT_DIR / 'cascade_scramble/cascade_scramble_B_only/cascade_scramble_B_only.pickle','rb') as f:
+        scramble_B = pickle.load(f)
+    normvar_inherited = scramble_B['inherited']['normvar']
+    normvar_scrambled_B = scramble_B['scrambled']['normvar']
+
+    with open(PROJECT_DIR / 'cascade_scramble/cascade_scramble_A_and_B/cascade_scramble_A_and_B.pickle','rb') as f:
+        scramble_A_B = pickle.load(f)
+    normvar_scrambled_A_B = scramble_A_B['scrambled']['normvar']
+
+    # Figure S22 (Scrambled Inheritance): plot
+
+    plt.figure(figsize=(12,3))
+
+    for i, (molecule, color) in enumerate([('A','r'), ('B','cyan'), ('C','purple')]):
+        plt.subplot(1,3,i+1)
+        plt.hlines(0,0,1000,color='k',linestyle='dashed',zorder=0)
+        plt.plot(normvar_inherited[i],label='inherited',color='gray')
+        plt.plot(normvar_scrambled_B[i],label='scrambled B only',color=color)
+        plt.plot(normvar_scrambled_A_B[i],label='scrambled A and B',color=color,linestyle='dashed')
+        plt.legend(frameon=0)
+        plt.xlim([0,1000])
+        plt.ylim([-0.2,1])
+        plt.xticks(np.linspace(0,1000,11),np.linspace(0,10,11).astype(int))
+        plt.xlabel('Generations')
+        plt.ylabel('LAS ' + molecule + ' ($\\Delta \\hat{\\sigma}^2_{\\Delta [' + molecule + ']}$)')
+
+    plt.tight_layout()
+    show_or_save('figure_S22')
+
+
+def figure_S23():
+    # Figure S23 (Bursting): pull data
+
+    with open(PROJECT_DIR / 'satprod/satprod_burst_time/satprod_burst_time.pickle','rb') as f:
+        results = pickle.load(f)
+    normvar_no_burst = results['no_burst']['normvar']
+    normvar_burst = results['burst']['normvar']
+
+    # Figure S23 (Bursting): plot
+
+    burstColor = 'deeppink'
+    plt.figure(figsize=(8,3))
+
+    for i, molecule in enumerate(['A','B']):
+        plt.subplot(1,2,i+1)
+        plt.hlines(0,0,1000,color='k',linestyle='dashed',zorder=0)
+        plt.plot(normvar_no_burst[i],label='No Bursting',color='gray')
+        plt.plot(normvar_burst[i],label='Bursting',color=burstColor)
+        plt.legend(frameon=0)
+        plt.xlim([0,1000])
+        plt.ylim([-0.2,1])
+        plt.xticks(np.linspace(0,1000,11),np.linspace(0,10,11).astype(int))
+        plt.xlabel('Generations')
+        plt.ylabel('LAS ' + molecule + ' ($\\Delta \\hat{\\sigma}^2_{\\Delta [' + molecule + ']}$)')
+
+    plt.tight_layout()
+    show_or_save('figure_S23')
+
+
+def figure_S24():
+    # Figure S24 (Burst Size Sweep): pull data
+
+    with open(PROJECT_DIR / 'satprod/satprod_burst_time_sweep/satprod_burst_time_sweep.pickle','rb') as f:
+        burstSizes, results = pickle.load(f)
+    normvar = results['normvar']
+
+    # Figure S24 (Burst Size Sweep): plot
+
+    plt.figure(figsize=(8,3))
+
+    for i, molecule in enumerate(['A','B']):
+        plt.subplot(1,2,i+1)
+        plt.hlines(0,0,1000,color='k',linestyle='dashed',zorder=0)
+        for j in range(len(burstSizes)):
+            plt.plot(normvar[j][i],label=f'Burst size: {burstSizes[j]}',color=plt.cm.viridis(j/len(burstSizes)))
+        plt.legend(frameon=0)
+        plt.xlim([0,1000])
+        plt.ylim([-0.2,1])
+        plt.xticks(np.linspace(0,1000,11),np.linspace(0,10,11).astype(int))
+        plt.xlabel('Generations')
+        plt.ylabel('LAS ' + molecule + ' ($\\Delta \\hat{\\sigma}^2_{\\Delta [' + molecule + ']}$)')
+
+    plt.tight_layout()
+    show_or_save('figure_S24')
+
+
 FIGURES = {
     'figure_01': figure_01,
     'figure_02': figure_02,
@@ -2866,6 +2955,9 @@ FIGURES = {
     'figure_S19': figure_S19,
     'figure_S20': figure_S20,
     'figure_S21': figure_S21,
+    'figure_S22': figure_S22,
+    'figure_S23': figure_S23,
+    'figure_S24': figure_S24,
 }
 
 
