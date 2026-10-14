@@ -24,6 +24,11 @@ CellParameters = namedtuple('CellParameters', [
     'prodA', 'prodB', 'prodC',
     'k1', 'k2', 'k3', 'k4', 'k5', 'k6', 'k7', 'k8',
     'burstSize',
+], defaults=[
+    None, None, int(1e7),
+    0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    1,
 ])
 
 
@@ -34,19 +39,8 @@ class Cell:
         self.rng = rng 
         self.divTime = self.rng.normal(self.Tcc,self.varTcc)
         self.divTimes = np.array([t0])
-        self.prodA = 0
-        self.prodB = 0
-        self.prodC = 0
-        self.k1 = 0
-        self.k2 = 0 
-        self.k3 = 0
-        self.k4 = 0
-        self.k5 = 0
-        self.k6 = 0
-        self.k7 = 0
-        self.k8 = 0
-        self.burstSize = 1
-        self.arrSize = int(1e7)
+        for name, val in CellParameters._field_defaults.items():
+            setattr(self, name, val)
         self.t = np.array([t0])
         self.V = np.array([1])
         self.A = np.array([0])
@@ -56,7 +50,7 @@ class Cell:
         self.E = np.array([0])
         self.F = np.array([0])
         self._reset_history()
-        self._init_buffers()
+        self.t_array = None
 
     def _init_buffers(self):
         self.t_array = np.empty(self.arrSize)
@@ -79,6 +73,7 @@ class Cell:
         buffers = ['t_array', 'V_array', 'A_array', 'B_array', 'C_array', 'D_array', 'E_array', 'F_array']
         for key in buffers:
             state.pop(key, None)
+        state['t_array'] = None
         return state
 
     @property
@@ -116,28 +111,15 @@ class Cell:
         """This cell's circuit parameters, for a daughter to inherit()."""
         return CellParameters._make(getattr(self, name) for name in CellParameters._fields)
 
-    def inherit(self,parameters,motherState):
+    def inherit(self,mother,motherState):
         """
-        Become a daughter: take the circuit parameters (mother.parameters()) and start from
-        motherState, the molecule counts partitioned to this daughter.
+        Become a daughter: copy the circuit parameters from mother (a Cell or CellParameters)
+        and start from motherState, the molecule counts partitioned to this daughter.
         """
-        self.circuit = parameters.circuit
-        self.circuit_code = parameters.circuit_code
-        if self.arrSize != parameters.arrSize:
-            self.arrSize = parameters.arrSize
-            self._init_buffers()
-        self.prodA = parameters.prodA
-        self.prodB = parameters.prodB
-        self.prodC = parameters.prodC
-        self.k1 = parameters.k1
-        self.k2 = parameters.k2
-        self.k3 = parameters.k3
-        self.k4 = parameters.k4
-        self.k5 = parameters.k5
-        self.k6 = parameters.k6
-        self.k7 = parameters.k7
-        self.k8 = parameters.k8
-        self.burstSize = parameters.burstSize
+        for name in CellParameters._fields:
+            setattr(self, name, getattr(mother, name))
+        if self.t_array is not None and len(self.t_array) != self.arrSize:
+            self.t_array = None
         
         self.A[0] = motherState[0]
         self.B[0] = motherState[1]
@@ -245,6 +227,8 @@ class Cell:
         self.divTimes = np.concatenate((self.divTimes,np.array([self.divTimes[-1] + self.divTime])))
 
     def sampleCycle(self):
+        if self.t_array is None:
+            self._init_buffers()
         growthRate = 1/self.divTime
         params = pack_params(self)
         n, _, _, _, _, _, _, _, _, overflow = run_cycle_numba(
@@ -269,6 +253,8 @@ class Cell:
 
     def runCycle(self):
         """Simulate one cell cycle from the current state and record it."""
+        if self.t_array is None:
+            self._init_buffers()
 
         self.updateDivTimes()
         growthRate = 1/self.divTime

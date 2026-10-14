@@ -66,7 +66,7 @@ class Grid:
                 daughterState = motherCell.partition()
                 motherCell.t = divTime
                 daughterCell = Cell(motherCell.Tcc,motherCell.varTcc,self.rng,t0=divTime)
-                daughterCell.inherit(motherCell.parameters(),daughterState)
+                daughterCell.inherit(motherCell,daughterState)
                 daughterCell.ID = len(self.Cells)+1
                 daughterCell.yloc, daughterCell.xloc = repLoc
                 daughterCell.lineage = motherCell.lineage + [daughterCell.ID]
