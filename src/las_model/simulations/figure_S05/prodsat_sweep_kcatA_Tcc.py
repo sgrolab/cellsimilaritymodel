@@ -15,7 +15,7 @@ metadata = {
     'experiment_directory': 'satprod',
     'created': datetime.now().isoformat(),
     'seed': 1000,
-    'nCells': 1000,
+    'nCells': 10000,
     'nCells_equilibrium': 10,
     'Tccs': list(np.logspace(2,4,5)),
     'varTcc': 0,

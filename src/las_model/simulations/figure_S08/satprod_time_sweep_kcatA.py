@@ -14,7 +14,7 @@ metadata = {
     'experiment_directory': 'satprod/time_kcatAsweep',
     'created': datetime.now().isoformat(),
     'seed': 1000,
-    'nCells': 1000,
+    'nCells': 10000,
     'nCells_equilibrium': 10,
     'nCycles': 10,
     'Tcc': 1000,
