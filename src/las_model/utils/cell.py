@@ -9,9 +9,22 @@ splits the end-of-cycle counts complementarily: the cell keeps one share and
 partition() returns the other for a daughter.
 """
 
+from collections import namedtuple
+
 import numpy as np
 from las_model.utils.gillespie_numba import Circuit, run_cycle_numba, pack_params, to_scalar
 from las_model.utils.parameterize import parameterize_cell
+
+
+# The circuit parameters a daughter copies from its mother: Cell.parameters() -> Cell.inherit().
+# Pool workers are handed this instead of the mother itself, because a Cell carries its whole
+# history, O(nCells) for a mother run for nCells cycles, and a task is pickled once per cell.
+CellParameters = namedtuple('CellParameters', [
+    'circuit', 'circuit_code', 'arrSize',
+    'prodA', 'prodB', 'prodC',
+    'k1', 'k2', 'k3', 'k4', 'k5', 'k6', 'k7', 'k8',
+    'burstSize',
+])
 
 
 class Cell:
@@ -99,24 +112,32 @@ class Cell:
         self.circuit_code = Circuit[circuit]
         parameterize_cell(self, circuit, params)
 
-    def inherit(self,motherCell,motherState):
-        self.circuit = motherCell.circuit
-        self.circuit_code = motherCell.circuit_code
-        if self.arrSize != motherCell.arrSize:
-            self.arrSize = motherCell.arrSize
+    def parameters(self):
+        """This cell's circuit parameters, for a daughter to inherit()."""
+        return CellParameters._make(getattr(self, name) for name in CellParameters._fields)
+
+    def inherit(self,parameters,motherState):
+        """
+        Become a daughter: take the circuit parameters (mother.parameters()) and start from
+        motherState, the molecule counts partitioned to this daughter.
+        """
+        self.circuit = parameters.circuit
+        self.circuit_code = parameters.circuit_code
+        if self.arrSize != parameters.arrSize:
+            self.arrSize = parameters.arrSize
             self._init_buffers()
-        self.prodA = motherCell.prodA
-        self.prodB = motherCell.prodB
-        self.prodC = motherCell.prodC
-        self.k1 = motherCell.k1
-        self.k2 = motherCell.k2
-        self.k3 = motherCell.k3
-        self.k4 = motherCell.k4 
-        self.k5 = motherCell.k5 
-        self.k6 = motherCell.k6
-        self.k7 = motherCell.k7
-        self.k8 = motherCell.k8
-        self.burstSize = motherCell.burstSize
+        self.prodA = parameters.prodA
+        self.prodB = parameters.prodB
+        self.prodC = parameters.prodC
+        self.k1 = parameters.k1
+        self.k2 = parameters.k2
+        self.k3 = parameters.k3
+        self.k4 = parameters.k4
+        self.k5 = parameters.k5
+        self.k6 = parameters.k6
+        self.k7 = parameters.k7
+        self.k8 = parameters.k8
+        self.burstSize = parameters.burstSize
         
         self.A[0] = motherState[0]
         self.B[0] = motherState[1]

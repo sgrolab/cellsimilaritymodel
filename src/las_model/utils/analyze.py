@@ -48,21 +48,21 @@ def calculate_division_differences(divStates, rng):
 
 def _simulate_cell_triplet(task_args):
     """Simulate the 3 offspring cells (sis1, sis2, rnd1) for a single cell index."""
-    i, sis1_state, sis2_state, rnd1_state, mother_cell, metadata, seed = task_args
+    i, sis1_state, sis2_state, rnd1_state, parameters, metadata, seed = task_args
     child_rng = np.random.default_rng(seed)
 
     sis1 = Cell(metadata['Tcc'], metadata['varTcc'], child_rng)
-    sis1.inherit(mother_cell, sis1_state)
+    sis1.inherit(parameters, sis1_state)
     sis1.run(metadata['nCycles'])
     molecules_sis1 = sis1.getMolecules()
 
     sis2 = Cell(metadata['Tcc'], metadata['varTcc'], child_rng)
-    sis2.inherit(mother_cell, sis2_state)
+    sis2.inherit(parameters, sis2_state)
     sis2.run(metadata['nCycles'])
     molecules_sis2 = sis2.getMolecules()
 
     rnd1 = Cell(metadata['Tcc'], metadata['varTcc'], child_rng)
-    rnd1.inherit(mother_cell, rnd1_state)
+    rnd1.inherit(parameters, rnd1_state)
     rnd1.run(metadata['nCycles'])
     molecules_rnd1 = rnd1.getMolecules()
 
@@ -91,8 +91,11 @@ def simulate_offspring_time(motherCell, metadata, rng, num_workers=None):
     # Generate statistically independent seeds for each task
     seeds = rng.integers(0, 2**63 - 1, size=n_cells)
 
+    # Each task is pickled to a worker, so hand it the mother's parameters rather than the
+    # mother itself with its O(nCells) history
+    parameters = motherCell.parameters()
     tasks = [
-        (i, sis1states[:, i], sis2states[:, i], rnd1states[:, i], motherCell, metadata, seeds[i])
+        (i, sis1states[:, i], sis2states[:, i], rnd1states[:, i], parameters, metadata, seeds[i])
         for i in range(n_cells)
     ]
 
@@ -115,13 +118,13 @@ def simulate_offspring_time(motherCell, metadata, rng, num_workers=None):
 def _simulate_cell_quintet(task_args):
     """Simulate the 3 offspring cells (sis1, sis2, rnd1) and the 2 scrambled sisters for a single cell index."""
     (i, sis1_state, sis2_state, rnd1_state, sis1_scrambled_state, sis2_scrambled_state,
-     mother_cell, metadata, seed) = task_args
+     parameters, metadata, seed) = task_args
     child_rng = np.random.default_rng(seed)
 
     molecules = []
     for state in (sis1_state, sis2_state, rnd1_state, sis1_scrambled_state, sis2_scrambled_state):
         cell = Cell(metadata['Tcc'], metadata['varTcc'], child_rng)
-        cell.inherit(mother_cell, state)
+        cell.inherit(parameters, state)
         cell.run(metadata['nCycles'])
         molecules.append(cell.getMolecules())
 
@@ -160,9 +163,12 @@ def simulate_offspring_scramble_time(motherCell, metadata, rng, num_workers=None
     # Generate statistically independent seeds for each task
     seeds = rng.integers(0, 2**63 - 1, size=n_cells)
 
+    # Each task is pickled to a worker, so hand it the mother's parameters rather than the
+    # mother itself with its O(nCells) history
+    parameters = motherCell.parameters()
     tasks = [
         (i, sis1states[:, i], sis2states[:, i], rnd1states[:, i],
-         sis1scrstates[:, i], sis2scrstates[:, i], motherCell, metadata, seeds[i])
+         sis1scrstates[:, i], sis2scrstates[:, i], parameters, metadata, seeds[i])
         for i in range(n_cells)
     ]
 
