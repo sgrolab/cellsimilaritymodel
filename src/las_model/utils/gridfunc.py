@@ -448,47 +448,40 @@ class Grid:
     
         return frame
     
-    def calcMoranI(self,neighborsize,frame,molecule,shape):
-        dataIndex = np.where(self.timepoints - frame > 0)[0][0]-1
-        
-        # get number of cells at timepoint 
-        N = np.count_nonzero(self.data[dataIndex])
-        
-        # get weight matrix 
-        w = self.calcWeightMatrix(neighborsize,frame,shape)
-        
-        # get sum of weight matrix 
-        W = np.sum(w)
-        
-        # get molecule frame 
-        molFrame = self.getFrame(frame,molecule)
-        
-        # build 1D matrix of all molecule concentrations at frame
-        concs = molFrame[np.nonzero(molFrame)]
-        
-        # center concentrations
+    def getConcentrations(self,t,molecule):
+        """
+        Concentration of molecule in every cell present at time t, at each cell's nearest
+        sampled time, ordered like np.nonzero of the cell map (the order calcWeightMatrix uses).
+        """
+        dataIndex = np.where(self.timepoints - t > 0)[0][0]-1
+        cellMap = self.data[dataIndex]
+        cellNums = cellMap[np.nonzero(cellMap)].astype(int)
+
+        m = 'ABCDEF'.index(molecule)
+        concs = np.empty(len(cellNums))
+        for k, cellNum in enumerate(cellNums):
+            cell = self.Cells[cellNum-1]
+            concs[k] = cell.molecules[m, np.argmin(abs(t-cell.sampleTimes))]
+
+        return concs
+
+    def calcMoranI(self,neighborsize,frame,molecule,shape,w=None):
+        """
+        Moran's I of molecule across the cells present at time frame. w, if given, must be
+        calcWeightMatrix(neighborsize,frame,shape); pass it to reuse one weight matrix for
+        several molecules at the same frame.
+        """
+        if w is None:
+            w = self.calcWeightMatrix(neighborsize,frame,shape)
+
+        # centered concentrations, in the same cell order as the rows and columns of w
+        concs = self.getConcentrations(frame,molecule)
+        N = len(concs)
         concs = concs - np.mean(concs)
 
-        # calculate numerator value 
-        numsum = 0
-        for i in range(len(concs)):
-            for j in range(len(concs)):
-                numsum += w[i,j] * concs[i] * concs[j]
-        
-        # calculate denominator 
-        densum = 0
-        for i in range(len(concs)):
-            densum += concs[i]**2
-        
-        # print('number of cells: %i' % N)
-        # print('weight matrix sum: %f' % W)
-        # print('numerator sum: %f' % numsum)
-        # print('denomenator sum: %f' % densum)
-        
-        # calculate Moran's I 
-        return N / W * numsum / densum
-        
-    
+        # I = N / W * sum_ij w_ij c_i c_j / sum_i c_i^2
+        return N / np.sum(w) * (concs @ w @ concs) / (concs @ concs)
+
     def calcWeightMatrix(self,neighborsize,frame,shape):
         """Spatial weights between every pair of cells present at time frame.
 
@@ -501,64 +494,46 @@ class Grid:
         A cell is never its own neighbor.
         """
         dataIndex = np.where(self.timepoints - frame > 0)[0][0]-1
-        
-        # get locations of cells
-        cellLocs = np.nonzero(self.data[dataIndex])
 
-        # allocate weight matrix 
-        w = np.zeros((np.size(cellLocs,1),np.size(cellLocs,1)))
+        # pairwise offsets between the locations of all cells
+        ys, xs = np.nonzero(self.data[dataIndex])
+        dy = ys[:,None] - ys[None,:]
+        dx = xs[:,None] - xs[None,:]
 
-        # Gaussian weight of a distance: the normal pdf with sigma neighborsize, in closed form
-        # because scipy's norm.pdf costs ~20 us per scalar call
-        scale = 1 / (neighborsize * math.sqrt(2 * math.pi))
-        def gauss(dist):
-            return scale * math.exp(-0.5 * (dist / neighborsize) ** 2)
+        if shape in ('discdist','gausdist'):
+            dist = np.hypot(dy,dx)
+        elif shape in ('discstep','donut','gausstep'):
+            dist = np.abs(dy) + np.abs(dx)
+        else:
+            raise ValueError(f"unknown shape '{shape}'")
 
-        # set weight matrix
-        for i in range(len(cellLocs[0])):
-            for j in range(len(cellLocs[0])):
-                if i == j:      # a cell is not its own neighbor
-                    continue
-                y1,x1 = cellLocs[0][i],cellLocs[1][i]
-                y2,x2 = cellLocs[0][j],cellLocs[1][j]
-                
-                if shape == 'discdist':
-                    dist = math.hypot(y1-y2, x1-x2)
-                    if dist <= neighborsize:
-                        w[i,j] = 1
-                elif shape == 'discstep':
-                    dist = abs(y1-y2)+abs(x1-x2)
-                    if dist <= neighborsize:
-                        w[i,j] = 1
-                elif shape == 'donut':
-                    dist = abs(y1-y2)+abs(x1-x2)
-                    if dist == neighborsize:
-                        w[i,j] = 1
-                elif shape == 'gausdist':
-                    dist = math.hypot(y1-y2, x1-x2)
-                    if dist <= neighborsize:
-                        w[i,j] = gauss(dist)
-                elif shape == 'gausstep':
-                    dist = abs(y1-y2)+abs(x1-x2)
-                    if dist <= neighborsize:
-                        w[i,j] = gauss(dist)
-                else:
-                    raise ValueError(f"unknown shape '{shape}'")
-        
+        if shape == 'donut':
+            neighbors = dist == neighborsize
+        else:
+            neighbors = dist <= neighborsize
+
+        if shape in ('gausdist','gausstep'):
+            # the normal pdf with sigma neighborsize, in closed form
+            scale = 1 / (neighborsize * math.sqrt(2 * math.pi))
+            w = np.where(neighbors, scale * np.exp(-0.5 * (dist / neighborsize) ** 2), 0.0)
+        else:
+            w = neighbors.astype(float)
+
+        np.fill_diagonal(w, 0)      # a cell is not its own neighbor
+
         return w
-    
-    
-        def nextFrame(self,i):
-            return plt.imshow(self.data[i],cmap='inferno',vmin=0,vmax=len(self.Cells))
 
-        def play(self):
-            fig,ax = plt.subplots(figsize=(12,10))
-            plt.imshow(self.data[0],cmap='inferno',vmin=0,vmax=len(self.Cells))
-            ax.spines['top'].set_linewidth(5)
-            ax.spines['right'].set_linewidth(5)
-            ax.spines['bottom'].set_linewidth(5)
-            ax.spines['left'].set_linewidth(5)
-            ax.set_xticks([])
-            ax.set_yticks([])
-            ani = animation.FuncAnimation(fig, self.nextFrame, frames=range(self.maxCells),repeat=0,interval=1000/20)
-            return ani
+    def nextFrame(self,i):
+        return plt.imshow(self.data[i],cmap='inferno',vmin=0,vmax=len(self.Cells))
+
+    def play(self):
+        fig,ax = plt.subplots(figsize=(12,10))
+        plt.imshow(self.data[0],cmap='inferno',vmin=0,vmax=len(self.Cells))
+        ax.spines['top'].set_linewidth(5)
+        ax.spines['right'].set_linewidth(5)
+        ax.spines['bottom'].set_linewidth(5)
+        ax.spines['left'].set_linewidth(5)
+        ax.set_xticks([])
+        ax.set_yticks([])
+        ani = animation.FuncAnimation(fig, self.nextFrame, frames=range(self.maxCells),repeat=0,interval=1000/20)
+        return ani
