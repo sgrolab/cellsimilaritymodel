@@ -37,8 +37,9 @@ def _calc_moranI_single_combo(task_args):
 
     morIs = np.zeros([5,len(timepoints)])
     for i in range(len(timepoints)):
+        w = grid.calcWeightMatrix(neighborhoodsize,timepoints[i],shape)   # shared by all molecules
         for j in range(len(metadata['molecules'])):
-            morIs[j,i] = grid.calcMoranI(neighborhoodsize,timepoints[i],metadata['molecules'][j],shape)
+            morIs[j,i] = grid.calcMoranI(neighborhoodsize,timepoints[i],metadata['molecules'][j],shape,w)
 
     return shape, neighborhoodsize, morIs
 
