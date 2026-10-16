@@ -522,19 +522,18 @@ class Grid:
         np.fill_diagonal(w, 0)      # a cell is not its own neighbor
 
         return w
-    
-    
-        def nextFrame(self,i):
-            return plt.imshow(self.data[i],cmap='inferno',vmin=0,vmax=len(self.Cells))
 
-        def play(self):
-            fig,ax = plt.subplots(figsize=(12,10))
-            plt.imshow(self.data[0],cmap='inferno',vmin=0,vmax=len(self.Cells))
-            ax.spines['top'].set_linewidth(5)
-            ax.spines['right'].set_linewidth(5)
-            ax.spines['bottom'].set_linewidth(5)
-            ax.spines['left'].set_linewidth(5)
-            ax.set_xticks([])
-            ax.set_yticks([])
-            ani = animation.FuncAnimation(fig, self.nextFrame, frames=range(self.maxCells),repeat=0,interval=1000/20)
-            return ani
+    def nextFrame(self,i):
+        return plt.imshow(self.data[i],cmap='inferno',vmin=0,vmax=len(self.Cells))
+
+    def play(self):
+        fig,ax = plt.subplots(figsize=(12,10))
+        plt.imshow(self.data[0],cmap='inferno',vmin=0,vmax=len(self.Cells))
+        ax.spines['top'].set_linewidth(5)
+        ax.spines['right'].set_linewidth(5)
+        ax.spines['bottom'].set_linewidth(5)
+        ax.spines['left'].set_linewidth(5)
+        ax.set_xticks([])
+        ax.set_yticks([])
+        ani = animation.FuncAnimation(fig, self.nextFrame, frames=range(self.maxCells),repeat=0,interval=1000/20)
+        return ani
