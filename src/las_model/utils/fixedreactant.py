@@ -47,14 +47,19 @@ def _simulate_lineage(PprodA, PprodB, kcatA, Km, Tcc, nCells, rng, x0, motherMol
             # calculate time step
             tau = -math.log(r1)/Rtot
 
-            # pick reaction 
-            if r2 < prodA: # produce enzyme 
-                A += 1
-            else:           # produce product 
-                C += 1
+            if V + tau/Tcc >= 2:
+                # the next reaction would land after division: drop it (memoryless)
+                # and take the state at the division time itself
+                V = 2.0
+            else:
+                # pick reaction
+                if r2 < prodA: # produce enzyme
+                    A += 1
+                else:           # produce product
+                    C += 1
 
-            # update volume 
-            V += tau/Tcc
+                # update volume
+                V += tau/Tcc
 
             # update amount of substrate 
             B = V * PprodB * Tcc
@@ -71,12 +76,10 @@ def _simulate_lineage(PprodA, PprodB, kcatA, Km, Tcc, nCells, rng, x0, motherMol
             S2[2] += c*c
             count += 1
 
-        # mother state just before division: the state after the reaction that
-        # pushed V past 2. The earlier array-based engine overwrote that last
-        # sample with the newborn state and then located mothers with
-        # np.where(volume == 1) - 1, which landed one reaction earlier, so its
-        # mother states were low by one molecule of whichever species reacted
-        # last (issue #86).
+        # mother state at the division time (V == 2), as in gillespie_numba's
+        # run_cycle_numba. Issue #86 had switched this to the state after the
+        # reaction that pushed V past 2, but that reaction belongs after division
+        # and biased the mother states by one molecule of whichever species it made.
         motherMolecules[0,gen] = A
         motherMolecules[1,gen] = round(B)
         motherMolecules[2,gen] = C
