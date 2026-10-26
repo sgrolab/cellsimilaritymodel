@@ -21,11 +21,11 @@ metadata = {
     'varTcc': 0,
     'circuit': 'phos_sat',
     'PprodA': 10**-1,
-    'PprodBs': list(np.logspace(-2,3,31)),
+    'PprodBs': list(np.logspace(-2,3,31)[:28]),
     'Kms': list(np.logspace(0,4,25)),
     'PprodC': 10**-1,
-    'ka': 10**-2,
-    'kc': 10**-2,
+    'ka': 10**-1,
+    'kc': 10**-1,
 }
 
 def _simulate_single_pprodB_km(task_args):

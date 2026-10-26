@@ -22,9 +22,9 @@ metadata = {
     'circuit': 'phos_cycle',
     'PprodAs': list(np.logspace(-3,2,31)),
     'PprodBs': list(np.logspace(-3,2,31)),
-    'PprodC': 10**-1,
-    'ka': 10**-1,
-    'kc': 10**-1,
+    'PprodC': 0.03,
+    'ka': 10**1,
+    'kc': 10**2,
 }
 
 def _simulate_single_pprodA_pprodB(task_args):
