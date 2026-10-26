@@ -1,27 +1,28 @@
 # 3 Step Cascade Spatial Simulation: relatedness curves for different random seeds
 from datetime import datetime
 import numpy as np
+from las_model.simulations.figure_06 import parameters as p
 from las_model.utils import gridfunc as gf
 from las_model.utils.config import PROJECT_DIR
 from las_model.utils.output import save_experiment
 from las_model.utils.parallel import run_pool
 
-# Experiment metadata
+# Experiment metadata, from figure_06/parameters.py
 metadata = {
     'experiment_name': 'cascade_spatial_seeds',
     'experiment_directory': 'cascade',
     'created': datetime.now().isoformat(),
-    'seeds': list(range(1000, 1008)),
-    'maxCells': 2**10,
-    'gridSize': 101,
-    'Tcc': 1000,
-    'varTcc': 10,
-    'circuit': 'cascade',
-    'PprodA': 10**-1,
-    'kcatA': 10**-2,
-    'kcatB': 10**-2,
-    'maxRadius': 9,
-    'relatedness_t': 10000,
+    'seeds': p.seeds,
+    'maxCells': p.maxCells,
+    'gridSize': p.gridSize,
+    'Tcc': p.Tcc,
+    'varTcc': p.varTcc,
+    'circuit': p.circuit,
+    'PprodA': p.PprodA,
+    'kcatA': p.kcatA,
+    'kcatB': p.kcatB,
+    'maxRadius': p.maxRadius,
+    'relatedness_t': p.nGenerations*p.Tcc,     # the end of the last generation
 }
 
 def _simulate_single_seed(task_args):

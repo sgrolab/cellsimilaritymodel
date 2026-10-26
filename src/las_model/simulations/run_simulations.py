@@ -23,6 +23,9 @@ REPO_DIR = SRC_DIR.parent
 # Folders left out of a full run; they can still be named explicitly on the command line
 EXCLUDE = {}
 
+# Modules in a folder that its scripts import rather than simulations to run
+NOT_SCRIPTS = {'parameters.py'}
+
 # Scripts in a folder run alphabetically unless the folder is listed here. Later entries
 # read the outputs of earlier ones.
 ORDER = {
@@ -43,7 +46,8 @@ def all_folders():
 
 def scripts_in(folder):
     """The runnable scripts of one folder, in execution order."""
-    scripts = [p for p in folder.glob('*.py') if not p.name.startswith(('plot_', '_')) and not is_stub(p)]
+    scripts = [p for p in folder.glob('*.py')
+               if not p.name.startswith(('plot_', '_')) and p.name not in NOT_SCRIPTS and not is_stub(p)]
     if folder.name in ORDER:
         names = {p.name for p in scripts}
         missing = set(ORDER[folder.name]) ^ names

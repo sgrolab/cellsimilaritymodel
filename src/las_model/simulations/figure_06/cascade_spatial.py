@@ -1,24 +1,25 @@
 # 3 Step Cascade Spatial Simulation
 from datetime import datetime
 import numpy as np
+from las_model.simulations.figure_06 import parameters as p
 from las_model.utils import gridfunc as gf
 from las_model.utils.config import PROJECT_DIR
 from las_model.utils.output import save_experiment
 
-# Experiment metadata
+# Experiment metadata, from parameters.py
 metadata = {
     'experiment_name': 'cascade_spatial',
     'experiment_directory': 'cascade',
     'created': datetime.now().isoformat(),
-    'seed': 1000,
-    'maxCells': 2**10,
-    'gridSize': 101,
-    'Tcc': 1000,
-    'varTcc': 10,
-    'circuit': 'cascade',
-    'PprodA': 10**-1,
-    'kcatA': 10**-2,
-    'kcatB': 10**-2,
+    'seed': p.seed,
+    'maxCells': p.maxCells,
+    'gridSize': p.gridSize,
+    'Tcc': p.Tcc,
+    'varTcc': p.varTcc,
+    'circuit': p.circuit,
+    'PprodA': p.PprodA,
+    'kcatA': p.kcatA,
+    'kcatB': p.kcatB,
 }
 
 # Pin random seed 
