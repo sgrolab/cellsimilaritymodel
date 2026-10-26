@@ -2678,12 +2678,12 @@ def figure_S20():
     ax.tick_params(axis='both',length=tickLength,width=tickWidth,labelsize=tickFontSize)
     ax.tick_params(axis='both',which='minor',length=tickLength/2,width=tickWidth/2,labelsize=tickFontSize)
     cax = f.add_subplot([0.6,0.35,.01,.4])
-    coef_cbar = ax.figure.colorbar(plt.cm.ScalarMappable(norm=plt.Normalize(0,3), cmap=prodColorMap),cax=cax,ticks=[0,1,2,3])
+    coef_cbar = ax.figure.colorbar(plt.cm.ScalarMappable(norm=plt.Normalize(0,5), cmap=prodColorMap),cax=cax,ticks=[0,1,2,3,4,5])
     cax.yaxis.set_ticks_position('left')
     coef_cbar.set_label('[Enzyme]',fontsize=tickFontSize,rotation=-90,labelpad=17)
     coef_cbar.ax.tick_params(length=tickLength/2,width=tickWidth/2,labelsize=18)
     coef_cbar.outline.set_linewidth(2)
-    coef_cbar.ax.set_yticklabels(['$10^{1}$','$10^2$','$10^3$','$10^4$'])
+    coef_cbar.ax.set_yticklabels(['$10^{0}$','$10^{1}$','$10^2$','$10^3$','$10^4$','$10^5$'])
 
     f.text(0.65,0.91,'C',fontsize=letterLabelSize,fontname='roboto')
     ax = f.add_subplot(gs[0:1,2:3])
@@ -2692,7 +2692,7 @@ def figure_S20():
     for i in range(len(phossat_Kms)):
         ax.scatter(substrate_MM[i],normvarB_MM[i],color=plt.cm.bwr((np.log10(A_MM[i,0]/phossat_Kms[i])+2)/4))
         try:
-            params,cov = curve_fit(logFit,phossat_PprodBs[0:-3]*1000,normvarB_MM[i,0:-3],p0=[1,1,1])
+            params,cov = curve_fit(logFit,phossat_PprodBs*1000,normvarB_MM[i],p0=[1,1,1])
         except RuntimeError:
             continue
         ax.plot(np.logspace(-1,6,100),logFit(np.logspace(-1,6,100),params[0],params[1],params[2]),linestyle='dotted',color=plt.cm.bwr((np.log10(A_MM[i,0]/phossat_Kms[i])+2)/4))
