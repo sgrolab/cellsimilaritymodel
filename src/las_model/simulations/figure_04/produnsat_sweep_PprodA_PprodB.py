@@ -20,7 +20,7 @@ metadata = {
     'circuit': 'produnsat',
     'PprodAs': list(np.logspace(-2,1,16)),
     'kcatA': 10**-1,
-    'PprodBs': list(np.logspace(-2,4,31)),
+    'PprodBs': list(np.logspace(-2,3.8,30)),
     'Km': 10**3
 }
 
