@@ -2,20 +2,21 @@
 import pickle
 from datetime import datetime
 import numpy as np
+from las_model.simulations.figure_06 import parameters as p
 from las_model.utils.config import PROJECT_DIR
 from las_model.utils.output import save_experiment
 from las_model.utils.parallel import run_pool
 
-# Experiment metadata
+# Experiment metadata, from parameters.py
 metadata = {
     'experiment_name': 'cascade_spatial_moranI',
     'experiment_directory': 'cascade',
     'created': datetime.now().isoformat(),
     'source_experiment': 'cascade_spatial',
-    'neighborhoodsizes': list(range(1,10)),
-    'shapes': ['discdist','discstep','donut','gausdist'],
-    'timestep': 100,
-    'molecules': ['A','B','C'],
+    'neighborhoodsizes': p.neighborhoodsizes,
+    'shapes': p.shapes,
+    'timestep': p.moranI_timestep,
+    'molecules': p.molecules,
 }
 
 # Load grid from the spatial simulation

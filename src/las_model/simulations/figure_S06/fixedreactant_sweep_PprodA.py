@@ -13,7 +13,7 @@ metadata = {
     'experiment_directory': 'fixed_reactant',
     'created': datetime.now().isoformat(),
     'seed': 1000,
-    'nCells': 1000,
+    'nCells': 10000,
     'Tcc': 1000,
     'PprodAs': list(np.logspace(-2,2,5)),
     'kcatA': 10**-1,

@@ -3,6 +3,7 @@
 # 3 Step Cascade Time Simulation 
 from datetime import datetime 
 import numpy as np
+from las_model.simulations.figure_06 import parameters as p
 from las_model.utils.cell import Cell
 from las_model.utils.config import PROJECT_DIR
 from las_model.utils.analyze import calculate_offspring_similarity_time
@@ -14,9 +15,9 @@ metadata = {
     'experiment_directory': 'cascade',
     'created': datetime.now().isoformat(),
     'seed': 1000,
-    'nCells': 1000,
+    'nCells': 10000,
     'nCells_equilibrium': 10,
-    'nCycles': 10,
+    'nCycles': p.nGenerations,      # as long as the spatial colony grows, from parameters.py
     'Tcc': 1000,
     'varTcc': 0,
     'circuit': 'cascade',

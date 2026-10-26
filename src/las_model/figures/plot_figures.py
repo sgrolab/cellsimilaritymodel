@@ -11,7 +11,7 @@ reported as failed and the others are still drawn.
 """
 
 import sys
-import pickle, os, numpy as np
+import json, pickle, os, numpy as np
 import matplotlib
 if '--save' in sys.argv:      # write files without opening windows
     matplotlib.use('Agg')
@@ -62,6 +62,11 @@ def normdvar(kT):
 
 def logFit(x,xmax,Kx,n):
     return xmax*x**n/(Kx**n+x**n)
+
+def load_metadata(experiment):
+    """The metadata.json a simulation script saved, for experiment given as '<directory>/<name>'."""
+    with open(PROJECT_DIR / experiment / 'metadata.json') as f:
+        return json.load(f)
 
 
 # Set by the command line below. None shows each figure interactively; a directory saves it there instead.
@@ -751,15 +756,15 @@ def figure_06():
     with open(PROJECT_DIR / 'cascade/cascade_time/cascade_time.pickle','rb') as f:
         cascade_time_results = pickle.load(f)
     normvar = cascade_time_results['normvar'][0]
+    nCycles = load_metadata('cascade/cascade_time')['nCycles']     # generations followed in panel C
 
-    ts = [2000,4000,6000,8000,10000]
-    molTimes = [4000,6000,8000,10000]
+    panelB_generations = load_metadata('cascade/cascade_spatial_analyze')['panelB_generations']
     molAImgs,molBImgs,molCImgs = cascade_spatial_results['molConcMaps']
     morIs_discdist = cascade_spatial_results['moranIs']
 
     # Figure 6 (spatial): plot
 
-    times = np.linspace(0,10,1001)
+    times = np.linspace(0,nCycles,normvar.shape[1])     # generations, sampled every Tcc/10
 
     def expDecay(x,tau,x0):
         return x0*np.exp(-x/tau)
@@ -792,7 +797,7 @@ def figure_06():
         var = 3*np.std(molAImgs[i][np.nonzero(molAImgs[i])])
         ax.imshow(molAImgs[i],cmap='inferno',vmin=mean-var,vmax=mean+var)
         ax.axis('off')
-        ax.set_title('gen %i' % (molTimes[i]/1000),color='white',fontsize=tickFontSize,pad=-1000)
+        ax.set_title('gen %i' % panelB_generations[i],color='white',fontsize=tickFontSize,pad=-1000)
     
         ax = f.add_axes([.15*i+0.02,.23,.2,.2])
         mean = np.mean(molBImgs[i][np.nonzero(molBImgs[i])])
@@ -821,14 +826,14 @@ def figure_06():
     ax.plot(times,normvar[0,:],color='red',label='A',linewidth=plotWidth)
     ax.plot(times,normvar[1,:],color='cyan',label='B',linewidth=plotWidth)
     ax.plot(times,normvar[2,:],color='purple',label='C',linewidth=plotWidth)
-    ax.set_xticks(np.linspace(0,10,6))
-    ax.set_xticks(np.linspace(0,10,11),[],minor=1)
+    ax.set_xticks(np.linspace(0,nCycles,nCycles//2+1))
+    ax.set_xticks(np.linspace(0,nCycles,nCycles+1),[],minor=1)
     ax.set_yticks(np.linspace(-.2,1,7))
     ax.set_yticks(np.linspace(-.2,1,13),[],minor=1)
     ax.set_xlabel('Generations',fontsize=axisFontSize,labelpad=-2)
     ax.set_ylabel('LAS ($\\Delta \\hat{\\sigma}^2$)',fontsize=axisFontSize,labelpad=-5)
     ax.legend(frameon=0,fontsize=tickFontSize,loc='upper right')
-    ax.set_xlim([0,10])
+    ax.set_xlim([0,nCycles])
     ax.set_ylim([-0.2,1])
     ax.spines['left'].set_linewidth(tickWidth)
     ax.spines['bottom'].set_linewidth(tickWidth)
@@ -2193,8 +2198,11 @@ def figure_S14():
 
     with open(PROJECT_DIR / 'cascade/cascade_spatial_analyze/cascade_spatial_analyze.pickle','rb') as f:
         imgs = pickle.load(f)['cousinmaps_all']
-    cousinNums = [100,200,300,400,500]
-    ts = [0,2000,4000,6000,8000,10000]
+    metadata = load_metadata('cascade/cascade_spatial_analyze')
+    cousinNums = metadata['cousinCells_all']
+    ts = metadata['cousin_ts_all']
+    cousinMax = metadata['cousinMax']     # the maps hold cousinMax minus the cousin number
+    cbarTicks = np.arange(-1,cousinMax+1,3)
 
     # Figure S14 (cousin maps different reference cells): plot
 
@@ -2204,7 +2212,7 @@ def figure_S14():
     for j in range(len(imgs)):
         for i in range(len(imgs[j])):
             ax = f.add_axes([.15*i,.8-.2*j,.18,.18])
-            ax.imshow(imgs[j][i],vmin=-2,vmax=8)
+            ax.imshow(imgs[j][i],vmin=-2,vmax=cousinMax)
             ax.axis('off')
             if i==0:
                 f.text(0.02,0.86-.2*j,'cell %i' % cousinNums[j],fontsize=tickFontSize,color='white',rotation=90,fontname='roboto')
@@ -2212,9 +2220,9 @@ def figure_S14():
                 ax.set_title('t=%4i' % ts[i],color='white',fontsize=tickFontSize)
 
     cbar_ax = f.add_axes([0.95,.8,.01,.18])
-    coef_cbar = ax.figure.colorbar(plt.cm.ScalarMappable(norm=plt.Normalize(-1,8), cmap='viridis'),cax=cbar_ax,ticks=[-1,2,5,8])
+    coef_cbar = ax.figure.colorbar(plt.cm.ScalarMappable(norm=plt.Normalize(-1,cousinMax), cmap='viridis'),cax=cbar_ax,ticks=cbarTicks)
     cbar_ax.yaxis.set_ticks_position('left')
-    coef_cbar.ax.set_yticklabels([8,5,2,-1])
+    coef_cbar.ax.set_yticklabels(cousinMax-1-cbarTicks)
     coef_cbar.set_label('Cousin Number',fontsize=tickFontSize,rotation=-90,labelpad=20,color='white')
     coef_cbar.ax.tick_params(length=tickLength/2,width=tickWidth/2,labelsize=18,colors='white')
     coef_cbar.outline.set_linewidth(2)
@@ -2229,6 +2237,7 @@ def figure_S15():
     with open(PROJECT_DIR / 'cascade/cascade_spatial_seeds/cascade_spatial_seeds.pickle','rb') as f:
         cascade_spatial_seeds, cascade_spatial_seeds_results = pickle.load(f)
     relatedness_seeds = cascade_spatial_seeds_results['relatedness']     # one (cells, radii) array per seed
+    nGenerations = int(np.log2(load_metadata('cascade/cascade_spatial_seeds')['maxCells']))
 
     # Figure S15 (relatedness curves different grids): plot
 
@@ -2241,7 +2250,7 @@ def figure_S15():
         ax.scatter(radii+offsets[i],np.mean(relatedness,axis=0),color=seedColors[i],label='seed=%i' % seed)
         ax.errorbar(radii+offsets[i],np.mean(relatedness,axis=0),yerr=np.std(relatedness,axis=0),fmt='None',ecolor=seedColors[i])
     ax.legend(frameon=0,fontsize=12,loc='lower right',ncol=2)
-    ax.set_ylim([0,7])
+    ax.set_ylim([0,nGenerations-3])
     ax.set_xlabel('Neighborhood Size (Cell Lengths)',fontsize=axisFontSize)
     ax.set_ylabel('Relatedness (Ave. Cousin #)',fontsize=axisFontSize)
     ax.spines['left'].set_linewidth(tickWidth)
@@ -2279,9 +2288,10 @@ def figure_S16():
 
     radii = np.linspace(1,9,9)
     plotradii = np.linspace(0,9,100)
-    moranI_timestep = 100          # sampling interval of cascade_spatial_moranI.py 
-    Tcc_cascade_spatial = 1000
-    times = np.arange(morIs_discdist.shape[2]) * moranI_timestep / Tcc_cascade_spatial   # generations 
+    moranI_timestep = load_metadata('cascade/cascade_spatial_moranI_discdist_r1')['timestep']
+    spatial_metadata = load_metadata('cascade/cascade_spatial')
+    nGenerations = int(np.log2(spatial_metadata['maxCells']))
+    times = np.arange(morIs_discdist.shape[2]) * moranI_timestep / spatial_metadata['Tcc']   # generations
 
     f = plt.figure(figsize=(16,8))
     gs = GridSpec(3,5,figure=f,wspace=0.5,hspace=0.3)
@@ -2297,11 +2307,11 @@ def figure_S16():
     ax = f.add_subplot(gs[0:1,3:4])
     for i in range(len(radii)):
         ax.plot(times,morIs_discdist[i,2,:],color=plt.cm.Greys((i+len(radii))/(2*len(radii))))
-    ax.set_xlim([0,10])
+    ax.set_xlim([0,nGenerations])
     ax.set_ylim([-1,1])
     ax.set_ylabel('Spatial Sim.\n(Moran\'s I)', fontsize=axisFontSize, labelpad=-2)
-    ax.set_xticks(np.linspace(0,10,3))
-    ax.set_xticks(np.linspace(0,10,11),[],minor=1)
+    ax.set_xticks(np.linspace(0,nGenerations,3))
+    ax.set_xticks(np.linspace(0,nGenerations,nGenerations+1),[],minor=1)
     ax.set_yticks(np.linspace(-1,1,5))
     ax.set_yticks(np.linspace(-1,1,21),[],minor=1)
     ax.spines['left'].set_linewidth(tickWidth)
@@ -2340,11 +2350,11 @@ def figure_S16():
     ax = f.add_subplot(gs[1:2,3:4])
     for i in range(len(radii)):
         ax.plot(times,morIs_donut[i,2,:],color=plt.cm.Greys((i+len(radii))/(2*len(radii))))
-    ax.set_xlim([0,10])
+    ax.set_xlim([0,nGenerations])
     ax.set_ylim([-1,1])
     ax.set_ylabel('Spatial Sim.\n(Moran\'s I)', fontsize=axisFontSize, labelpad=-2)
-    ax.set_xticks(np.linspace(0,10,3))
-    ax.set_xticks(np.linspace(0,10,11),[],minor=1)
+    ax.set_xticks(np.linspace(0,nGenerations,3))
+    ax.set_xticks(np.linspace(0,nGenerations,nGenerations+1),[],minor=1)
     ax.set_yticks(np.linspace(-1,1,5))
     ax.set_yticks(np.linspace(-1,1,21),[],minor=1)
     ax.spines['left'].set_linewidth(tickWidth)
@@ -2383,12 +2393,12 @@ def figure_S16():
     ax = f.add_subplot(gs[2:3,3:4])
     for i in range(len(radii)):
         ax.plot(times,morIs_gausdisc[i,2,:],color=plt.cm.Greys((i+len(radii))/(2*len(radii))))
-    ax.set_xlim([0,10])
+    ax.set_xlim([0,nGenerations])
     ax.set_ylim([-1,1])
     ax.set_xlabel('Cell Generations',fontsize=axisFontSize,labelpad=-2)
     ax.set_ylabel('Spatial Sim.\n(Moran\'s I)', fontsize=axisFontSize, labelpad=-2)
-    ax.set_xticks(np.linspace(0,10,3))
-    ax.set_xticks(np.linspace(0,10,11),[],minor=1)
+    ax.set_xticks(np.linspace(0,nGenerations,3))
+    ax.set_xticks(np.linspace(0,nGenerations,nGenerations+1),[],minor=1)
     ax.set_yticks(np.linspace(-1,1,5))
     ax.set_yticks(np.linspace(-1,1,21),[],minor=1)
     ax.spines['left'].set_linewidth(tickWidth)
