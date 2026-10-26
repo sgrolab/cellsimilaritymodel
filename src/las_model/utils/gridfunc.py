@@ -27,6 +27,7 @@ class Grid:
         starterCell.lineage = [starterCell.ID]
         starterCell.lineageDivTimes = []
         starterCell.runCycle()
+        starterCell.releaseBuffers()
         self.data[0,starterCell.yloc,starterCell.xloc] = starterCell.ID
         self.Cells.append(starterCell)
     
@@ -77,6 +78,8 @@ class Grid:
                 # run both cells' next cycles so their next division times are known 
                 daughterCell.runCycle()
                 motherCell.runCycle()
+                daughterCell.releaseBuffers()
+                motherCell.releaseBuffers()
                 
                 self.data[i,daughterCell.yloc,daughterCell.xloc] = daughterCell.ID
                 self.Cells.append(daughterCell)

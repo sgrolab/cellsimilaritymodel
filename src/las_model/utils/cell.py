@@ -62,6 +62,16 @@ class Cell:
         self.E_array = np.empty(self.arrSize)
         self.F_array = np.empty(self.arrSize)
 
+    def releaseBuffers(self):
+        """
+        Drop the scratch buffers; the next runCycle() or sampleCycle() reallocates them.
+        gridfunc.Grid keeps every cell of the colony alive, and holding eight arrSize
+        buffers per cell would grow its memory with the number of cells.
+        """
+        for key in ['V_array', 'A_array', 'B_array', 'C_array', 'D_array', 'E_array', 'F_array']:
+            self.__dict__.pop(key, None)
+        self.t_array = None
+
     def _reset_history(self):
         self._states = []      # per cycle: [t, V, A, B, C, D, E, F] at the end of the cycle
         self._times = []       # per cycle: times of the Tcc/10 downsampled trajectory
