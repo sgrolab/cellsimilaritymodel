@@ -839,9 +839,9 @@ def figure_06():
 
     f.text(0.7,0.3,'D',fontsize=letterLabelSize,fontname='roboto')
     ax = f.add_subplot(gs[2,2])
+    # A has no spatial similarity to fit, only noise around 0, so draw a zero reference instead
+    ax.hlines(0,0,10,color='k',linestyle='dashed',linewidth=plotWidth,zorder=0)
     plt.scatter(radii,morIs_discdist[:,0,-1],color='r',label='A')
-    params1,cov = curve_fit(expDecay,radii,morIs_discdist[:,0,-1],p0=[.5,1])
-    plt.plot(radii,expDecay(radii,params1[0],params1[1]),linestyle='dotted',color=enzymeColor)
     plt.scatter(radii,morIs_discdist[:,1,-1],color='cyan',label='B')
     params2,cov = curve_fit(expDecay,radii,morIs_discdist[:,1,-1],p0=[.5,1])
     plt.plot(radii,expDecay(radii,params2[0],params2[1]),linestyle='dotted',color=signalColor)
@@ -2313,9 +2313,9 @@ def figure_S16():
 
     f.text(0.755,0.94,'C',fontsize=letterLabelSize,fontname='roboto')
     ax = f.add_subplot(gs[0:1,4:5])
+    # A has no spatial similarity to fit, only noise around 0, so draw a zero reference instead
+    ax.hlines(0,0,10,color='k',linestyle='dashed',linewidth=plotWidth,zorder=0)
     ax.scatter(radii,morIs_discdist[:,0,-1],color=enzymeColor,label='A')
-    params,cov = curve_fit(expDecay,radii,morIs_discdist[:,0,-1],p0=[.5,1])
-    plt.plot(plotradii,expDecay(plotradii,params[0],params[1]),linestyle='dashed',color=enzymeColor)
     ax.scatter(radii,morIs_discdist[:,1,-1],color=signalColor,label='B')
     params,cov = curve_fit(expDecay,radii,morIs_discdist[:,1,-1],p0=[.5,1])
     plt.plot(plotradii,expDecay(plotradii,params[0],params[1]),linestyle='dashed',color=signalColor)
@@ -2356,9 +2356,9 @@ def figure_S16():
 
     f.text(0.76,0.61,'F',fontsize=letterLabelSize,fontname='roboto')
     ax = f.add_subplot(gs[1:2,4:5])
+    # A has no spatial similarity to fit, only noise around 0, so draw a zero reference instead
+    ax.hlines(0,0,10,color='k',linestyle='dashed',linewidth=plotWidth,zorder=0)
     ax.scatter(radii,morIs_donut[:,0,-1],color=enzymeColor,label='A')
-    params,cov = curve_fit(expDecay,radii,morIs_donut[:,0,-1],p0=[.5,1])
-    plt.plot(plotradii,expDecay(plotradii,params[0],params[1]),linestyle='dashed',color=enzymeColor)
     ax.scatter(radii,morIs_donut[:,1,-1],color=signalColor,label='B')
     params,cov = curve_fit(expDecay,radii,morIs_donut[:,1,-1],p0=[.5,1])
     plt.plot(plotradii,expDecay(plotradii,params[0],params[1]),linestyle='dashed',color=signalColor)
@@ -2400,9 +2400,9 @@ def figure_S16():
 
     f.text(0.76,0.33,'I',fontsize=letterLabelSize,fontname='roboto')
     ax = f.add_subplot(gs[2:3,4:5])
+    # A has no spatial similarity to fit, only noise around 0, so draw a zero reference instead
+    ax.hlines(0,0,10,color='k',linestyle='dashed',linewidth=plotWidth,zorder=0)
     ax.scatter(radii,morIs_gausdisc[:,0,-1],color=enzymeColor,label='A')
-    params,cov = curve_fit(expDecay,radii,morIs_gausdisc[:,0,-1],p0=[.5,1])
-    plt.plot(plotradii,expDecay(plotradii,params[0],params[1]),linestyle='dashed',color=enzymeColor)
     ax.scatter(radii,morIs_gausdisc[:,1,-1],color=signalColor,label='B')
     params,cov = curve_fit(expDecay,radii,morIs_gausdisc[:,1,-1],p0=[.5,1])
     plt.plot(plotradii,expDecay(plotradii,params[0],params[1]),linestyle='dashed',color=signalColor)
