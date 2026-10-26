@@ -18,12 +18,13 @@ metadata = {
     'nCells': 10000,
     'nCells_equilibrium': 10,
     'nCycles': p.nGenerations,      # as long as the spatial colony grows, from parameters.py
-    'Tcc': 1000,
-    'varTcc': 0,
-    'circuit': 'cascade',
-    'PprodA': 10**-1,
-    'ka': 10**-1,
-    'kb': 10**-1,
+    # the same circuit as the spatial simulations, from parameters.py
+    'Tcc': p.Tcc,
+    'varTcc': p.varTcc,
+    'circuit': p.circuit,
+    'PprodA': p.PprodA,
+    'kcatA': p.kcatA,
+    'kcatB': p.kcatB,
 }
 
 # Pin random seed 
@@ -38,7 +39,7 @@ results = {
 
 # Intialize Mother cell and run simulation 
 motherCell = Cell(metadata['Tcc'],metadata['varTcc'],rng)
-motherCell.parameterize(metadata['circuit'],[metadata['PprodA'],metadata['ka'],metadata['kb']])
+motherCell.parameterize(metadata['circuit'],[metadata['PprodA'],metadata['kcatA'],metadata['kcatB']])
 motherCell.equilibrate(metadata['nCells_equilibrium'])
 motherCell.run(metadata['nCells'])
 
