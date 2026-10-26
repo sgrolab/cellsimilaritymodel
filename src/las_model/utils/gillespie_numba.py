@@ -544,6 +544,8 @@ def run_cycle_numba(
 ):
     """
     Run a full Gillespie cell cycle until V >= 2.0 or max_steps reached.
+    The reaction that would land after division is dropped, so the last entry is the
+    state at the division time itself rather than just after a reaction.
     Populates pre-allocated buffer arrays and returns (n, t, V, A, B, C, D, E, F, overflow).
     """
     A = A0
@@ -572,9 +574,16 @@ def run_cycle_numba(
             overflow = True
             break
 
-        A, B, C, D, E, F, tau = step_reaction(circuit, A, B, C, D, E, F, V, params, rng)
-        V += tau * growthRate
-        t += tau
+        A1, B1, C1, D1, E1, F1, tau = step_reaction(circuit, A, B, C, D, E, F, V, params, rng)
+        if V + tau * growthRate >= 2.0:
+            # the next reaction would land after division: drop it (memoryless) and
+            # record the state at the division time itself
+            t += (2.0 - V) / growthRate
+            V = 2.0
+        else:
+            A, B, C, D, E, F = A1, B1, C1, D1, E1, F1
+            V += tau * growthRate
+            t += tau
 
         t_arr[n] = t
         V_arr[n] = V
