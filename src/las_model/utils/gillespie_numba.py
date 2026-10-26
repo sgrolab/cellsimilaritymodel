@@ -361,7 +361,7 @@ def step_reaction(circuit, A, B, C, D, E, F, V, p, rng):
     elif circuit == Circuit.phos_cycle:
         Bp = D
         formBp = k1 * A * B
-        formB = k3 * C * Bp
+        formB = k2 * C * Bp
         Rtot = prodA + prodB + formB + formBp + prodC
         r1 = rng.random()
         r2 = rng.random() * Rtot
