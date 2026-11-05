@@ -58,7 +58,7 @@ def returnLogMinorTicks(start,stop):
     return tickvals
 
 def normdvar(kT):
-    return 20/9*kT/(3+20/9*kT)
+    return 14/9*kT/(3+14/9*kT)
 
 def logFit(x,xmax,Kx,n):
     return xmax*x**n/(Kx**n+x**n)
@@ -108,7 +108,7 @@ def figure_02():
     # Figure 2 (Toy Model): Pull Data
 
     def normdvar(kT):
-        return 20/9*kT/(3+20/9*kT)
+        return 14/9*kT/(3+14/9*kT)
 
     def logFit(x,xmax,Kx,n):
         return xmax*x**n/(Kx**n+x**n)
@@ -161,7 +161,7 @@ def figure_02():
         return 3*kcat*Pprod*Tcc**2
 
     def var_dB_rnd(kcat,Pprod,Tcc):
-        return 3*kcat*Pprod*Tcc**2 + 20/9*kcat**2*Pprod*Tcc**3
+        return 3*kcat*Pprod*Tcc**2 + 14/9*kcat**2*Pprod*Tcc**3
 
     f = plt.figure(figsize=(16,10))
     gs = GridSpec(3,4,figure=f,wspace=0.5,hspace=0.5)
@@ -395,7 +395,7 @@ def figure_03():
 
     f.text(-0.06,0.95,'A',fontsize=letterLabelSize,fontname='roboto')
     ax = f.add_subplot(gs[0,0])
-    ax.vlines(27/20,-.2,1,color='gray',linestyle=(0, (8, 8)),zorder=0)
+    ax.vlines(27/14,-.2,1,color='gray',linestyle=(0, (8, 8)),zorder=0)
     ax.hlines(0,0,2*10**5,color='k',linestyle='dashed',linewidth=plotWidth,zorder=0)
     ax.plot(kTrange,normdvar(kTrange),color='k',linewidth=plotWidth,zorder=1,label='Analytical')
     ax.scatter(np.array(Tcc_low_sweep_Tccs)*kcatA_Tcc_low_sweep,Tcc_low_sweep_results['normvar'][:,1],color=TccSweepColor,label='$T_{cc}$ sweep',marker='s')
@@ -910,7 +910,7 @@ def figure_S02():
         return 3*kcat*Pprod*Tcc**2
 
     def absM_dArnd_var(kcat,Pprod,Tcc):
-        return 3/2*kcat*Pprod*Tcc**2 + 10/9*kcat**2*Pprod*Tcc**3
+        return 3/2*kcat*Pprod*Tcc**2 + 7/9*kcat**2*Pprod*Tcc**3
 
     f = plt.figure(figsize=(16,16))
     gs = GridSpec(6,4,wspace=0.3,hspace=0.4)
@@ -1088,7 +1088,7 @@ def figure_S04():
     # Figure S4 (Saturated Production, kcat and Tcc sweep, full): pull data
 
     def normdvar(kT):
-        return 20/9*kT/(3+20/9*kT)
+        return 14/9*kT/(3+14/9*kT)
 
     satprod = img.imread(PROJECT_DIR / 'graphics/ngigraphic56.png')
 
@@ -1125,7 +1125,7 @@ def figure_S04():
 
     f.text(0.37,0.85,'B',fontsize=letterLabelSize,fontname='roboto')
     ax = f.add_subplot(gs[0,1])
-    ax.vlines(27/20,-.2,1,color='gray',linestyle=(0, (8, 8)),zorder=0)
+    ax.vlines(27/14,-.2,1,color='gray',linestyle=(0, (8, 8)),zorder=0)
     ax.hlines(0,0,2*10**6,color='k',linestyle='dashed',linewidth=plotWidth,zorder=0)
     ax.plot(kTrange,normdvar(kTrange),color='k',linewidth=plotWidth,zorder=1,label='Analytical')
     ax.scatter(Tcc_low_sweep_Tccs*kcatA_Tcc_low_sweep,Tcc_low_sweep_results['normvar'][:,1],color=TccSweepColor,label='$T_{cc}$ sweep',marker='s')
@@ -1161,7 +1161,7 @@ def figure_S05():
     # Figure S5 (Saturated Production Amplification Factor 2D): pull data
 
     def normdvar(kT):
-        return 20/9*kT/(3+20/9*kT)
+        return 14/9*kT/(3+14/9*kT)
 
     with open(PROJECT_DIR / 'satprod/prodsat_sweep_kcatA_Tcc/prodsat_sweep_kcatA_Tcc.pickle','rb') as f:
         kcatAs,Tccs,results = pickle.load(f)
@@ -1248,8 +1248,17 @@ def figure_S06():
     def calcProdRate(A,B,Km,kcat):
         return kcat/2*(A+B+Km-np.sqrt((A+B+Km)**2-4*A*B))
 
+    def meanRate(A,B,Km,kcat):
+        """
+        Per-enzyme production rate averaged over the cell cycle. A and B are mean
+        concentrations; fixedreactant.py works in amounts, A*V and B*V, and V grows
+        linearly in time from 1 to 2, so below saturation the rate rises through the cycle.
+        """
+        Vs = np.linspace(1,2,101)[:,None]
+        return np.mean(calcProdRate(A*Vs,B*Vs,Km,kcat)/(A*Vs),axis=0)
+
     def normdvar(kT):
-        return 20/9*kT/(3+20/9*kT)
+        return 14/9*kT/(3+14/9*kT)
 
     f = plt.figure(figsize=(16,4))
     gs = GridSpec(1,3,figure=f,wspace=0.4,hspace=0.4)
@@ -1262,8 +1271,8 @@ def figure_S06():
     f.text(0.28,0.89,'B',fontsize=letterLabelSize,fontname='roboto')
     ax = f.add_subplot(gs[0:1,1:2])
     for i in range(3):
-        ax.scatter(Tcc*calcProdRate(means_pA[i,:,0],means_pA[i,:,1],Km,kcatA)/means_pA[i,:,0],normvars_pA[i,:,2],color=prodColors2[i],label='[A]=$10^{%i}$' % (i+1))
-    ax.vlines(27/20,-.2,1,color='gray',linestyle=(0, (8, 8)),zorder=0)
+        ax.scatter(Tcc*meanRate(means_pA[i,:,0],means_pA[i,:,1],Km,kcatA),normvars_pA[i,:,2],color=prodColors2[i],label='[A]=$10^{%i}$' % (i+1))
+    ax.vlines(27/14,-.2,1,color='gray',linestyle=(0, (8, 8)),zorder=0)
     ax.hlines(0,0,2*10**5,color='k',linestyle='dashed',linewidth=plotWidth,zorder=0)
     ax.plot(np.logspace(-2,3,101),normdvar(np.logspace(-2,3,101)),label='Analytical',color='k',linewidth=plotWidth,zorder=0)
     ax.legend(frameon=0,fontsize=14,loc='upper left',bbox_to_anchor=[0.55,0.16,.5,.5])
@@ -1290,8 +1299,8 @@ def figure_S06():
     f.text(0.64,0.89,'C',fontsize=letterLabelSize,fontname='roboto')
     ax = f.add_subplot(gs[0:1,2:3])
     for i in range(len(means_kA)):
-        ax.scatter(Tcc*calcProdRate(means_kA[i,:,0],means_kA[i,:,1],Km,kcatAs[i])/means_kA[i,:,0],normvars_kA[i,:,2],color=kcatColors[i],label='$k_{cat,A}=10^{%i}$' % (i-2))
-    ax.vlines(27/20,-.2,1,color='gray',linestyle=(0, (8, 8)),zorder=0)
+        ax.scatter(Tcc*meanRate(means_kA[i,:,0],means_kA[i,:,1],Km,kcatAs[i]),normvars_kA[i,:,2],color=kcatColors[i],label='$k_{cat,A}=10^{%i}$' % (i-2))
+    ax.vlines(27/14,-.2,1,color='gray',linestyle=(0, (8, 8)),zorder=0)
     ax.hlines(0,0,2*10**5,color='k',linestyle='dashed',linewidth=plotWidth,zorder=0)
     ax.plot(np.logspace(-3,4,101),normdvar(np.logspace(-3,4,101)),label='Analytical',color='k',linewidth=plotWidth,zorder=0)
     ax.legend(frameon=0,fontsize=14,loc='upper left',bbox_to_anchor=[0.55,0.45,.5,.5])
