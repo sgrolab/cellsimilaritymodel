@@ -22,6 +22,7 @@ from matplotlib import patches as mpatches
 from matplotlib.colors import ListedColormap
 from scipy.optimize import curve_fit
 from scipy import stats
+from scipy.linalg import expm
 from pathlib import Path
 sys.path.append(str(Path(__file__).parents[2]))     # src/, so the las_model imports work without PYTHONPATH
 try:
@@ -67,6 +68,26 @@ def load_metadata(experiment):
     """The metadata.json a simulation script saved, for experiment given as '<directory>/<name>'."""
     with open(PROJECT_DIR / experiment / 'metadata.json') as f:
         return json.load(f)
+
+def las_chain(mu, Sigma, rates, Tcc, gens):
+    """
+    Analytical LAS of every species of a linear production chain at the start of each
+    generation g in gens: species 0 made at a constant rate, species i made at rates[i-1] per
+    molecule of species i-1, no degradation, a fixed cycle time Tcc and binomial division.
+    mu and Sigma are the mean and covariance of the molecule counts at division. Sisters
+    share (Sigma - diag mu)/4 at birth; the shared surplus feeds downstream through
+    expm(M g Tcc), and each division quarters it. Returns an array (len(gens), len(mu)).
+    """
+    n = len(mu)
+    C0 = (Sigma - np.diag(mu))/4        # covariance between sisters at birth
+    v = (np.diag(Sigma) + mu)/4         # variance of a newborn
+    M = np.zeros((n,n))
+    M[np.arange(1,n), np.arange(n-1)] = rates
+    las = []
+    for g in gens:
+        E = expm(M*g*Tcc)
+        las.append(np.diag(E @ C0 @ E.T)/v/4**g)
+    return np.array(las)
 
 
 # Set by the command line below. None shows each figure interactively; a directory saves it there instead.
@@ -2139,6 +2160,15 @@ def figure_S12():
         results = pickle.load(f)
     times = np.linspace(0,20,2001)
 
+    # analytical LAS of A..E at the start of each generation, from the moments at division
+    # (F is never made: kcatE = 0). Data saved before the moments were added plots without it.
+    analytical = None
+    if 'divMean' in results:
+        metadata = load_metadata('cascade/cascade5_time')
+        gens = np.arange(metadata['nCycles']+1)
+        rates = [metadata[k] for k in ('kcatA','kcatB','kcatC','kcatD')]
+        analytical = las_chain(results['divMean'][:5], results['divCov'][:5,:5], rates, metadata['Tcc'], gens)
+
     # Figure S12 (5 Step Cascade): plot
 
     f = plt.figure(figsize=(8,4))
@@ -2157,7 +2187,11 @@ def figure_S12():
     ax.plot(times,results['normvar'][2],color=breakerColor,label='C')
     ax.plot(times,results['normvar'][3],color=color_L,label='D')
     ax.plot(times,results['normvar'][4],color=kcatColor,label='E')
-    ax.legend(frameon=0,fontsize=tickFontSize,ncol=2)
+    if analytical is not None:
+        for i, color in enumerate([enzymeColor,signalColor,breakerColor,color_L,kcatColor]):
+            ax.scatter(gens,analytical[:,i],facecolors='none',edgecolors=color,s=30,zorder=3)
+        ax.scatter([],[],facecolors='none',edgecolors='k',s=30,label='Analytical')
+    ax.legend(frameon=0,fontsize=tickFontSize,ncol=1)
     ax.set_xlabel('Generations',fontsize=axisFontSize)
     ax.set_xlim([0,20])
     ax.set_xticks(np.linspace(0,20,5))
