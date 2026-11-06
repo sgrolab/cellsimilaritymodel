@@ -44,7 +44,10 @@ _, _, vardsis, vardrnd, normvar = calculate_offspring_similarity_time(motherCell
 results = {
     'vardsis': vardsis,
     'vardrnd': vardrnd,
-    'normvar': normvar
+    'normvar': normvar,
+    # moments of the molecule counts A..F at division, for the analytical curves of figure S12
+    'divMean': np.mean(divStates, axis=1),
+    'divCov': np.cov(divStates),
 }
 
 # Save results 
