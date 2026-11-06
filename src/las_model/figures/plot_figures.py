@@ -2916,25 +2916,44 @@ def figure_S23():
 def figure_S24():
     # Figure S24 (Burst Size Sweep): pull data
 
-    with open(PROJECT_DIR / 'satprod/satprod_burst_time_sweep/satprod_burst_time_sweep.pickle','rb') as f:
-        burstSizes, results = pickle.load(f)
-    normvar = results['normvar']
+    # one row of panels per run, from kcatA*Tcc = 100 down to 1: the smaller it is, the more
+    # burst size matters. Runs missing from older data are left out.
+    runs = []
+    for name in ['satprod_burst_time_sweep','satprod_burst_time_sweep_kappa10',
+                 'satprod_burst_time_sweep_kappa1']:
+        path = PROJECT_DIR / 'satprod' / name / f'{name}.pickle'
+        if not path.exists():
+            continue
+        with open(path,'rb') as f:
+            burstSizes, results = pickle.load(f)
+        runs.append((burstSizes, results['normvar'], load_metadata(f'satprod/{name}')))
+    allBurstSizes = sorted(set(b for burstSizes, _, _ in runs for b in burstSizes))   # one color per burst size
+
+    def tenpow(x):
+        e = np.log10(x)
+        return '1' if e == 0 else f'10^{{{e:g}}}' if e == round(e) else f'{x:g}'
 
     # Figure S24 (Burst Size Sweep): plot
 
-    plt.figure(figsize=(8,3))
+    plt.figure(figsize=(8,3.5*len(runs)))
 
-    for i, molecule in enumerate(['A','B']):
-        plt.subplot(1,2,i+1)
-        plt.hlines(0,0,1000,color='k',linestyle='dashed',zorder=0)
-        for j in range(len(burstSizes)):
-            plt.plot(normvar[j][i],label=f'Burst size: {burstSizes[j]}',color=plt.cm.viridis(j/len(burstSizes)))
-        plt.legend(frameon=0)
-        plt.xlim([0,1000])
-        plt.ylim([-0.2,1])
-        plt.xticks(np.linspace(0,1000,11),np.linspace(0,10,11).astype(int))
-        plt.xlabel('Generations')
-        plt.ylabel('LAS ' + molecule + ' ($\\Delta \\hat{\\sigma}^2_{\\Delta [' + molecule + ']}$)')
+    for r, (burstSizes, normvar, metadata) in enumerate(runs):
+        # each row is titled with its parameters, so the rows can be told apart
+        params = (f"$P_{{prod,A}} = {tenpow(metadata['PprodA'])}$,  $k_{{cat,A}} = {tenpow(metadata['kcatA'])}$,"
+                  f"  $T_{{cc}} = {metadata['Tcc']:g}$\n$k_{{cat,A}}T_{{cc}} = {metadata['kcatA']*metadata['Tcc']:g}$")
+        for i, molecule in enumerate(['A','B']):
+            plt.subplot(len(runs),2,2*r+i+1)
+            plt.hlines(0,0,1000,color='k',linestyle='dashed',zorder=0)
+            for j in range(len(burstSizes)):
+                color = plt.cm.viridis(allBurstSizes.index(burstSizes[j])/len(allBurstSizes))
+                plt.plot(normvar[j][i],label=f'Burst size: {burstSizes[j]}',color=color)
+            plt.legend(frameon=0)
+            plt.title(params,fontsize=10)
+            plt.xlim([0,1000])
+            plt.ylim([-0.2,1])
+            plt.xticks(np.linspace(0,1000,11),np.linspace(0,10,11).astype(int))
+            plt.xlabel('Generations')
+            plt.ylabel('LAS ' + molecule + ' ($\\Delta \\hat{\\sigma}^2_{\\Delta [' + molecule + ']}$)')
 
     plt.tight_layout()
     show_or_save('figure_S24')
