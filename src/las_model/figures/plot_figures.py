@@ -22,13 +22,13 @@ from matplotlib import patches as mpatches
 from matplotlib.colors import ListedColormap
 from scipy.optimize import curve_fit
 from scipy import stats
-from scipy.linalg import expm
 from pathlib import Path
 sys.path.append(str(Path(__file__).parents[2]))     # src/, so the las_model imports work without PYTHONPATH
 try:
     from las_model.utils.config import PROJECT_DIR
 except TypeError:   # ROOT_DIR is not set: --root-dir can still supply the data directory, and --help must work
     PROJECT_DIR = None
+from las_model.utils.theory import chain_matrix, division_moments, las, las_chain, peak_and_duration
 
 letterLabelSize=42
 axisFontSize=20
@@ -68,26 +68,6 @@ def load_metadata(experiment):
     """The metadata.json a simulation script saved, for experiment given as '<directory>/<name>'."""
     with open(PROJECT_DIR / experiment / 'metadata.json') as f:
         return json.load(f)
-
-def las_chain(mu, Sigma, rates, Tcc, gens):
-    """
-    Analytical LAS of every species of a linear production chain at the start of each
-    generation g in gens: species 0 made at a constant rate, species i made at rates[i-1] per
-    molecule of species i-1, no degradation, a fixed cycle time Tcc and binomial division.
-    mu and Sigma are the mean and covariance of the molecule counts at division. Sisters
-    share (Sigma - diag mu)/4 at birth; the shared surplus feeds downstream through
-    expm(M g Tcc), and each division quarters it. Returns an array (len(gens), len(mu)).
-    """
-    n = len(mu)
-    C0 = (Sigma - np.diag(mu))/4        # covariance between sisters at birth
-    v = (np.diag(Sigma) + mu)/4         # variance of a newborn
-    M = np.zeros((n,n))
-    M[np.arange(1,n), np.arange(n-1)] = rates
-    las = []
-    for g in gens:
-        E = expm(M*g*Tcc)
-        las.append(np.diag(E @ C0 @ E.T)/v/4**g)
-    return np.array(las)
 
 
 # Set by the command line below. None shows each figure interactively; a directory saves it there instead.
@@ -2974,6 +2954,61 @@ def figure_S24():
     show_or_save('figure_S24')
 
 
+def figure_magnitude_duration():
+    # Magnitude and duration of LAS: analytical, from utils/theory.py, no simulation data.
+    # The readout is the last species of a linear chain whose first species is made in bursts;
+    # each line sweeps one parameter away from a common baseline. Time is in units of Tcc, and
+    # the mean production of the first species cancels out of LAS, so both are set to 1.
+
+    gens = np.linspace(0,25,2501)
+    baseline = {'kappa': 1, 'burstSize': 1, 'stages': 1, 'degradation': 0}
+
+    def point(kappa, burstSize, stages, degradation):
+        rates = [kappa]*stages                       # kcat*Tcc of every stage
+        deg = [0] + [degradation]*stages             # gamma*Tcc of every made species
+        mu, Sigma = division_moments(1, rates, 1, burstSize, deg)
+        values = las(mu, Sigma, chain_matrix(rates, deg), 1, gens)[:,-1]
+        return peak_and_duration(gens, values)
+
+    # (parameter, values, other parameters changed from the baseline, legend label, short label,
+    #  color, linestyle, which ends to label and where: (index, offset in points))
+    # The burst-size sweeps start on the kcat*Tcc line and end together near (1, 1.8), so only
+    # one of their ends is labeled.
+    sweeps = [
+        ('kappa', [0.01,0.03,0.1,0.3,1,3,10,30,100,300,1000], {}, '$k_{cat}T_{cc}$', '$k_{cat}T_{cc}$',
+         'k', '-', [(0,(0,-14)), (-1,(-30,-14))]),
+        ('burstSize', [1,2,5,10,20,50,100], {}, 'burst size 1 to 100', 'b', 'tab:red', '-', [(-1,(-10,5))]),
+        ('burstSize', [1,2,5,10,20,50,100], {'kappa': 0.1}, 'burst size 1 to 100, $k_{cat}T_{cc}=0.1$', 'b',
+         'tab:red', ':', [(-1,(-15,5))]),
+        ('burstSize', [1,2,5,10,20,50,100], {'kappa': 100}, 'burst size 1 to 100, $k_{cat}T_{cc}=100$', 'b',
+         'tab:red', '--', []),
+        ('stages', [1,2,3,4,5,6], {}, 'stages', 'stages', 'tab:blue', '-', [(-1,(5,3))]),
+        ('degradation', [0,0.1,0.3,1,3,10], {}, 'degradation $\\gamma T_{cc}$', '$\\gamma T_{cc}$',
+         'tab:green', '-', [(-1,(-15,10))]),
+    ]
+
+    # Figure (Magnitude and duration): plot
+
+    f, ax = plt.subplots(figsize=(6,4.5))
+    for name, values, fixed, label, short, color, linestyle, ends in sweeps:
+        points = np.array([point(**{**baseline, **fixed, name: v}) for v in values])
+        ax.plot(points[:,0],points[:,1],color=color,linestyle=linestyle,marker='o',markersize=4,label=label)
+        for i, offset in ends:
+            ax.annotate(f'{short}={values[i]:g}',points[i],textcoords='offset points',xytext=offset,fontsize=9,color=color)
+    x0, y0 = point(**baseline)
+    ax.scatter(x0,y0,marker='*',s=250,color='k',zorder=3,label='baseline: $k_{cat}T_{cc}=1$, burst size 1,\n1 stage, no degradation')
+    ax.legend(frameon=0,fontsize=10,loc='upper left')
+    ax.set_xlim([0,1.05])
+    ax.set_ylim(bottom=0)
+    ax.set_xlabel('Magnitude (peak LAS of the last species)',fontsize=14)
+    ax.set_ylabel('Duration (generations until LAS\ndrops to half its peak)',fontsize=14)
+    ax.spines['right'].set_linewidth(0)
+    ax.spines['top'].set_linewidth(0)
+
+    plt.tight_layout()
+    show_or_save('figure_magnitude_duration')
+
+
 FIGURES = {
     'figure_01': figure_01,
     'figure_02': figure_02,
@@ -3005,6 +3040,7 @@ FIGURES = {
     'figure_S22': figure_S22,
     'figure_S23': figure_S23,
     'figure_S24': figure_S24,
+    'figure_magnitude_duration': figure_magnitude_duration,
 }
 
 
