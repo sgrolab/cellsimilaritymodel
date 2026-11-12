@@ -33,9 +33,11 @@ motherCell.equilibrate(metadata['nCells_equilibrium'])
 motherCell.run(metadata['nCells'])
 
 # Simulate inherited and scrambled offspring, then pairwise differences over time
-sis1, sis2, rnd1, sis1scr, sis2scr = simulate_offspring_scramble_time(motherCell,metadata,rng)
+sis1, sis2, rnd1, sis1scr, sis2scr, rnd1scr = simulate_offspring_scramble_time(
+    motherCell, metadata, rng)
 _, _, vardsis_inherited, vardrnd_inherited, normvar_inherited = calculate_offspring_differences(sis1, sis2, rnd1)
-_, _, vardsis_scrambled, vardrnd_scrambled, normvar_scrambled = calculate_offspring_differences(sis1scr, sis2scr, rnd1)
+_, _, vardsis_scrambled, vardrnd_scrambled, normvar_scrambled = calculate_offspring_differences(
+    sis1scr, sis2scr, rnd1scr)
 
 results = {
     'inherited': {
