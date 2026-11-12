@@ -115,14 +115,13 @@ def simulate_offspring_time(motherCell, metadata, rng, num_workers=None):
     return sis1stack, sis2stack, rnd1stack
 
 
-def _simulate_cell_quintet(task_args):
-    """Simulate the 3 offspring cells (sis1, sis2, rnd1) and the 2 scrambled sisters for a single cell index."""
-    (i, sis1_state, sis2_state, rnd1_state, sis1_scrambled_state, sis2_scrambled_state,
-     parameters, metadata, seed) = task_args
+def _simulate_cell_group(task_args):
+    """Simulate one cell from each of the given birth states, for a single cell index."""
+    i, states, parameters, metadata, seed = task_args
     child_rng = np.random.default_rng(seed)
 
     molecules = []
-    for state in (sis1_state, sis2_state, rnd1_state, sis1_scrambled_state, sis2_scrambled_state):
+    for state in states:
         cell = Cell(metadata['Tcc'], metadata['varTcc'], child_rng)
         cell.inherit(parameters, state)
         cell.run(metadata['nCycles'])
@@ -134,16 +133,24 @@ def _simulate_cell_quintet(task_args):
 def simulate_offspring_scramble_time(motherCell, metadata, rng, num_workers=None):
     """
     Like simulate_offspring_time, but each sister is also rerun as a scrambled copy in which
-    the molecules indexed by metadata['scrambled_molecules'] are instead inherited from a
-    random other mother (a different one per sister). The random cell rnd1 is shared between
-    the inherited and scrambled pairings.
+    the molecules indexed by metadata['scrambled_molecules'] do not come from her own mother.
+    metadata['scramble_source'] says where they come from instead:
 
-    Returns sis1, sis2, rnd1, sis1scr, sis2scr, each of shape (nVars, nCells, nTimes).
+    'different_mothers' (the default): a random other mother, a different one per sister.
+    'same_mother': one random other mother, whose molecules the two sisters split.
+    'mean_mother': a mother holding the mean count over all mothers, rounded to a whole
+        molecule, which the two sisters split. Mothers then do not differ in the scrambled
+        molecules, so the random cell is rerun as well, as a daughter of another such mother.
+
+    Returns sis1, sis2, rnd1, sis1scr, sis2scr, rnd1scr, each of shape (nVars, nCells, nTimes).
+    rnd1scr is the random cell to compare the scrambled sisters with: rnd1 itself, except
+    with 'mean_mother'.
     """
     # Get division states and create offspring cells
     divStates = (motherCell.getMotherStates()).astype('int')
     n_cells = metadata['nCells']
     scrambled = list(metadata['scrambled_molecules'])
+    source = metadata.get('scramble_source', 'different_mothers')
 
     sis1states = rng.binomial(divStates, 0.5)
     sis2states = divStates - sis1states
@@ -151,14 +158,39 @@ def simulate_offspring_scramble_time(motherCell, metadata, rng, num_workers=None
     partnerIdx = rng.integers(0, n_cells, size=n_cells)
     rnd1states = rng.binomial(divStates[:, partnerIdx], 0.5)
 
-    # Redraw the scrambled molecules as daughters of each sister's own random other mother
     sis1scrstates = sis1states.copy()
-    newMother1 = rng.integers(0, n_cells, size=n_cells)
-    sis1scrstates[scrambled] = rng.binomial(divStates[np.ix_(scrambled, newMother1)], 0.5)
-
     sis2scrstates = sis2states.copy()
-    newMother2 = rng.integers(0, n_cells, size=n_cells)
-    sis2scrstates[scrambled] = rng.binomial(divStates[np.ix_(scrambled, newMother2)], 0.5)
+    states = [sis1states, sis2states, rnd1states, sis1scrstates, sis2scrstates]
+
+    if source == 'different_mothers':
+        # Redraw the scrambled molecules as daughters of each sister's own random other mother
+        newMother1 = rng.integers(0, n_cells, size=n_cells)
+        sis1scrstates[scrambled] = rng.binomial(divStates[np.ix_(scrambled, newMother1)], 0.5)
+
+        newMother2 = rng.integers(0, n_cells, size=n_cells)
+        sis2scrstates[scrambled] = rng.binomial(divStates[np.ix_(scrambled, newMother2)], 0.5)
+
+    elif source == 'same_mother':
+        # The two sisters split the scrambled molecules of one random other mother
+        newMother = rng.integers(0, n_cells, size=n_cells)
+        newStates = divStates[np.ix_(scrambled, newMother)]
+        sis1scrstates[scrambled] = rng.binomial(newStates, 0.5)
+        sis2scrstates[scrambled] = newStates - sis1scrstates[scrambled]
+
+    elif source == 'mean_mother':
+        # The two sisters split the scrambled molecules of a mother holding the mean count,
+        # and the random cell is a daughter of another such mother
+        meanStates = np.rint(divStates[scrambled].mean(axis=1, keepdims=True)).astype('int')
+        shape = (len(scrambled), n_cells)
+        sis1scrstates[scrambled] = rng.binomial(meanStates, 0.5, size=shape)
+        sis2scrstates[scrambled] = meanStates - sis1scrstates[scrambled]
+
+        rnd1scrstates = rnd1states.copy()
+        rnd1scrstates[scrambled] = rng.binomial(meanStates, 0.5, size=shape)
+        states.append(rnd1scrstates)
+
+    else:
+        raise ValueError(f"unknown scramble_source '{source}'")
 
     # Generate statistically independent seeds for each task
     seeds = rng.integers(0, 2**63 - 1, size=n_cells)
@@ -167,18 +199,22 @@ def simulate_offspring_scramble_time(motherCell, metadata, rng, num_workers=None
     # mother itself with its O(nCells) history
     parameters = motherCell.parameters()
     tasks = [
-        (i, sis1states[:, i], sis2states[:, i], rnd1states[:, i],
-         sis1scrstates[:, i], sis2scrstates[:, i], parameters, metadata, seeds[i])
+        (i, [state[:, i] for state in states], parameters, metadata, seeds[i])
         for i in range(n_cells)
     ]
 
-    stacks = [[None] * n_cells for _ in range(5)]
-    for i, *cell_molecules in run_pool(_simulate_cell_quintet, tasks, desc='offspring cells', num_workers=num_workers):
+    stacks = [[None] * n_cells for _ in states]
+    groups = run_pool(_simulate_cell_group, tasks, desc='offspring cells',
+                      num_workers=num_workers)
+    for i, *cell_molecules in groups:
         for stack, molecules in zip(stacks, cell_molecules):
             stack[i] = molecules
 
     # Stack molecule lists
-    return tuple(np.stack(stack, axis=1) for stack in stacks)
+    stacks = [np.stack(stack, axis=1) for stack in stacks]
+    if len(stacks) == 5:
+        stacks.append(stacks[2])   # the random cell was not rerun: compare with rnd1
+    return tuple(stacks)
 
 
 def calculate_offspring_differences(sis1, sis2, rnd1):

@@ -2854,31 +2854,55 @@ def figure_S21():
 def figure_S22():
     # Figure S22 (Scrambled Inheritance): pull data
 
-    with open(PROJECT_DIR / 'cascade_scramble/cascade_scramble_B_only/cascade_scramble_B_only.pickle','rb') as f:
-        scramble_B = pickle.load(f)
-    normvar_inherited = scramble_B['inherited']['normvar']
-    normvar_scrambled_B = scramble_B['scrambled']['normvar']
+    def load(experiment):
+        path = PROJECT_DIR / 'cascade_scramble' / experiment / (experiment + '.pickle')
+        with open(path,'rb') as f:
+            return pickle.load(f)
 
-    with open(PROJECT_DIR / 'cascade_scramble/cascade_scramble_A_and_B/cascade_scramble_A_and_B.pickle','rb') as f:
-        scramble_A_B = pickle.load(f)
-    normvar_scrambled_A_B = scramble_A_B['scrambled']['normvar']
+    # One row of panels per source of the scrambled molecules:
+    # (suffix of the experiment names, title of the row, y limits)
+    sources = [
+        ('',
+         'Each sister gets the scrambled molecules from a different random mother',
+         [-0.2,1]),
+        ('_same_mother',
+         'The sisters split the scrambled molecules of one random mother',
+         [-0.2,1]),
+        ('_mean_mother',
+         'The sisters split the scrambled molecules of a mother with the mean count',
+         [-1.1,1]),
+    ]
+
+    rows = []
+    for suffix, title, ylim in sources:
+        scramble_B = load('cascade_scramble_B_only' + suffix)
+        scramble_A_B = load('cascade_scramble_A_and_B' + suffix)
+        normvars = (scramble_B['inherited']['normvar'], scramble_B['scrambled']['normvar'],
+                    scramble_A_B['scrambled']['normvar'])
+        rows.append((normvars, title, ylim))
 
     # Figure S22 (Scrambled Inheritance): plot
 
-    plt.figure(figsize=(12,3))
+    plt.figure(figsize=(12,3*len(rows)))
 
-    for i, (molecule, color) in enumerate([('A','r'), ('B','cyan'), ('C','purple')]):
-        plt.subplot(1,3,i+1)
-        plt.hlines(0,0,1000,color='k',linestyle='dashed',zorder=0)
-        plt.plot(normvar_inherited[i],label='inherited',color='gray')
-        plt.plot(normvar_scrambled_B[i],label='scrambled B only',color=color)
-        plt.plot(normvar_scrambled_A_B[i],label='scrambled A and B',color=color,linestyle='dashed')
-        plt.legend(frameon=0)
-        plt.xlim([0,1000])
-        plt.ylim([-0.2,1])
-        plt.xticks(np.linspace(0,1000,11),np.linspace(0,10,11).astype(int))
-        plt.xlabel('Generations')
-        plt.ylabel('LAS ' + molecule + ' ($\\Delta \\hat{\\sigma}^2_{\\Delta [' + molecule + ']}$)')
+    for row, (normvars, title, ylim) in enumerate(rows):
+        normvar_inherited, normvar_scrambled_B, normvar_scrambled_A_B = normvars
+        for i, (molecule, color) in enumerate([('A','r'), ('B','cyan'), ('C','purple')]):
+            plt.subplot(len(rows),3,3*row+i+1)
+            plt.hlines(0,0,1000,color='k',linestyle='dashed',zorder=0)
+            plt.plot(normvar_inherited[i],label='inherited',color='gray')
+            plt.plot(normvar_scrambled_B[i],label='scrambled B only',color=color)
+            plt.plot(normvar_scrambled_A_B[i],label='scrambled A and B',color=color,
+                     linestyle='dashed')
+            plt.legend(frameon=0)
+            plt.xlim([0,1000])
+            plt.ylim(ylim)
+            plt.xticks(np.linspace(0,1000,11),np.linspace(0,10,11).astype(int))
+            plt.xlabel('Generations')
+            plt.ylabel('LAS ' + molecule
+                       + ' ($\\Delta \\hat{\\sigma}^2_{\\Delta [' + molecule + ']}$)')
+            if i == 1:
+                plt.title(title)
 
     plt.tight_layout()
     show_or_save('figure_S22')
